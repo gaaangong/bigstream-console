@@ -1,0 +1,424 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/vaadin-grid/all-imports.html">
+
+<link rel="import" href="/bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="/bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="/bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="/bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="/bower_components/iron-icons/editor-icons.html">
+
+<link rel="import" href="../common/jsonviewer.html">
+
+<link rel="import" href="../bootstrap.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="page-storages-detail">
+    <template>
+        <style include="bootstrap"></style>
+        <style include="app-grid-style"></style>
+        <style include="shared-styles">
+             :host {
+                --app-grid-columns: 2;
+                --app-grid-gutter: 15px;
+                --app-grid-expandible-item-columns: 2;
+                --app-primary-color: #2f323a;
+                --app-secondary-color: #5093e1;
+            }
+
+            div[main-title] {
+                color: #448ee2;
+            }
+
+            vaadin-grid.material {
+                --vaadin-grid-body-cell: {
+                    display: block;
+                    cursor: pointer;
+                    color: rgba(0, 0, 0, var(--dark-primary-opacity));
+                    font-size: 11px;
+                }
+                ;
+            }
+
+            ul {
+                padding: 0;
+                list-style: none;
+            }
+
+            .item {
+                background-color: white;
+            }
+
+            paper-input {
+                width: 100%;
+            }
+
+
+            vaadin-grid {
+                border-right: 0;
+                border-left: 0;
+            }
+
+            app-toolbar {
+                background-color: #fff;
+                border-bottom: 1px solid var(--paper-grey-300)
+            }
+
+            paper-fab.createJobFab {
+                --paper-fab-background: var(--paper-light-blue-700);
+                position: fixed;
+                right: 20px;
+                bottom: 70px;
+                z-index: 100;
+            }
+
+            #pages {
+                display: flex;
+                flex-wrap: wrap;
+                margin: 20px;
+                font-size: 12px;
+            }
+
+            #pages>button {
+                user-select: none;
+                padding: 5px;
+                margin: 0 5px;
+                border-radius: 10%;
+                border: 0;
+                background: transparent;
+                font: inherit;
+                outline: none;
+                cursor: pointer;
+            }
+
+            #pages>button:hover,
+            #pages>button:focus {
+                color: var(--default-primary-color);
+                background-color: #eee;
+            }
+
+            #pages>button[selected] {
+                font-weight: bold;
+                color: white;
+                background-color: var(--default-primary-color);
+            }
+
+            span.mini-icon {
+                font-size: 10px;
+                padding: 5px;
+                background: #f2f2f2;
+                border-radius: 5px;
+                margin-right: 6px;
+            }
+
+            .details {
+                overflow: auto;
+            }
+
+            .datalist {
+                @apply --app-grid-expandible-item;
+            }
+
+            .app-grid.stats .item {
+                background: none;
+                margin-bottom: 0;
+                @apply --app-grid-expandible-item;
+            }
+
+            .app-grid.stats span {
+                font-size: 12px;
+                padding: 7px;
+                background: #fff;
+                margin-right: 2px;
+                --iron-icon-width: 12px;
+                border-right: 2px solid #e7e7e7;
+            }
+
+            .datalist .filter {
+                background: #edeff5;
+                --paper-tabs-selection-bar-color: #5194e1;
+                --paper-tabs: {
+                    font-weight: normal;
+                    display: inline-flex;
+                }
+                ;
+                --paper-tab: {
+                    margin: 0;
+                    padding: 0;
+                    -webkit-box-shadow: 15px 0 15px -10px #A6A6A6;
+                    box-shadow: 15px 0 15px -10px #A6A6A6;
+                }
+                ;
+                --paper-tab-content: {
+                    background: #fff;
+                    padding: 0 20px;
+                }
+                ;
+                --paper-tab-content-unselected: {
+                    background: #edeff5;
+                }
+                ;
+                --paper-input-container-underline-focus: {
+                    display: none;
+                }
+                ;
+            }
+
+            paper-tabs {
+                background: #edeff5;
+            }
+
+            .datalist .filter iron-pages {
+                background: #fff;
+                padding: 10px;
+            }
+
+            .submitfilter {
+                border: 1px solid #c5c5c5;
+                margin-left: 25px;
+                font-size: 13px;
+                --iron-icon-height: 21px;
+                padding-right: 14px;
+            }
+        </style>
+        <!-- Fetch an array of users to be shown in the grid -->
+        <app-route route="[[route]]" pattern="/:storageid" data="{{routeData}}"></app-route>
+        <iron-ajax auto loading="{{loading}}" url="[[urlquery]]" handle-as="json" on-response="_loadStorageComplete" last-response="{{items}}"
+            id="updateStorageLists"></iron-ajax>
+
+        <app-toolbar>
+            <div main-title>
+                [[titlePage]] <span style="color:#414e5d;">| [[routeData.storageid]]</span></div>
+        </app-toolbar>
+
+        <div class="app-grid stats">
+            <div class="item">
+                <span><iron-icon icon="editor:insert-drive-file"></iron-icon> file name : [[stats.filename]]</span>
+                <span><iron-icon icon="editor:attach-file"></iron-icon> file size : [[stats.filesize]]</span>
+                <span>[[stats.count]] rows</span>
+            </div>
+        </div>
+
+        <x-array-data-provider items="{{items}}"></x-array-data-provider>
+        <div class="app-grid">
+            <paper-card class="item datalist">
+                <div class="filter">
+                    <paper-tabs selected="{{filterselected}}">
+                        <paper-tab>Last filter</paper-tab>
+                        <paper-tab>From - limit filter</paper-tab>
+                        <paper-tab>by ID</paper-tab>
+                    </paper-tabs>
+                    <iron-pages selected="{{filterselected}}">
+                        <div class="d-flex">
+                            <div style="width: 100%;">
+                                <paper-input always-float-label label="Number of last index" value="{{lastfilter::input}}"></paper-input>
+                            </div>
+                            <div class="align-self-center">
+                                <paper-button class="submitfilter" on-click="_lastfilterSubmit">
+                                    <iron-icon icon="icons:search"></iron-icon>search</paper-button>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div style="width: 100%;">
+                                <paper-input always-float-label label="From" value="{{fromfilter::input}}"></paper-input>
+                            </div>
+                            <div style="width: 100%;margin-left: 25px;">
+                                <paper-input always-float-label label="Limit" value="{{limitfilter::input}}"></paper-input>
+                            </div>
+                            <div class="align-self-center">
+                                <paper-button class="submitfilter" on-click="_fromlimitSubmit">
+                                    <iron-icon icon="icons:search"></iron-icon>search</paper-button>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div style="width: 100%;">
+                                <paper-input always-float-label label="Object ID" value="{{objidfilter::input}}"></paper-input>
+                            </div>
+                            <div class="align-self-center">
+                                <paper-button class="submitfilter" on-click="_objidfilterSubmit">
+                                    <iron-icon icon="icons:search"></iron-icon>search</paper-button>
+                            </div>
+                        </div>
+                    </iron-pages>
+                </div>
+                <template is="dom-if" if="[[loading]]">
+                    <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;"></paper-progress>
+                </template>
+                <vaadin-grid class="material" items="{{items}}" on-active-item-changed="_onActiveItemChanged" id="grid" page-size="[[pageSize]]">
+
+                    <template class="row-details">
+                        <div class="details">
+                            <jsonviewer-element json="[[item]]"></jsonviewer-element>
+                        </div>
+                    </template>
+
+                    <vaadin-grid-column width="50px" flex-grow="0">
+                        <template class="header">#</template>
+                        <template>[[index]]</template>
+                    </vaadin-grid-column>
+
+                    <vaadin-grid-column>
+                        <template class="header">List</template>
+                        <template><span class="mini-icon">{ }</span> id : [[item._id]]</template>
+                    </vaadin-grid-column>
+
+                    <vaadin-grid-column>
+                        <template class="header">Create at</template>
+                        <template>[[_timestampDate(item.meta._ts)]]</template>
+                    </vaadin-grid-column>
+
+
+                </vaadin-grid>
+            </paper-card>
+        </div>
+
+        <paper-toast autoFitOnAttach id="toast"></paper-toast>
+    </template>
+    <script>
+        class PageStoragesDetail extends Polymer.Element {
+            static get is() {
+                return 'page-storages-detail';
+            }
+
+            static get properties() {
+                return {
+                    titlePage: {
+                        type: String,
+                        value: 'Storages'
+                    },
+                    storageDetail: Object,
+                    items: Array,
+                    page: Number,
+                    from: {
+                        type: Number
+                    },
+                    pageSize: {
+                        type: Number,
+                        value: 200
+                    },
+                    loading: {
+                        type: Boolean,
+                        notify: true,
+                        value: false
+                    },
+                    jsoneditor: Object,
+                    stats: Object,
+                    filterselected: {
+                        type: Number,
+                        value: 0
+                    },
+                    mainurl: String,
+                    urlquery: String
+                };
+            }
+            static get observers() {
+                return [
+                    '_pageChanged(routeData.storageid)'
+                ];
+            }
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () { });
+
+
+            }
+            _loadStorageComplete(ev) { }
+            _onActiveItemChanged(e) {
+                if (e.detail.value) {
+                    $.getJSON(this.storagesobjapi + '/' + this.routeData.storageid + '.' + e.detail.value._id,
+                        function (res) {
+                            var data = e.detail.value;
+                            data.data = res.data;
+                            this.$.grid.expandedItems = [data];
+                        }.bind(this));
+                }
+            }
+
+            _pageChanged(storageid) {
+                this.items = [];
+                this.mainurl = this.storagesapi + '/' + this.routeData.storageid + '/objects?';
+                this.urlquery = this.mainurl + 'last=100';
+                this.$.updateStorageLists.generateRequest();
+                this.$.grid.clearCache();
+
+                // fetch stats of storageid
+                $.getJSON(this.storagesapi + '/' + this.routeData.storageid + '/stats', function (data) {
+                    this.stats = data;
+                    // console.log(data);
+                }.bind(this))
+
+                this.lastfilter = this.fromfilter = this.objidfilter = this.limitfilter = "";
+
+            }
+
+            _isSelected(page, item) {
+                return page === item - 1;
+            }
+
+            _select(e) {
+                this.page = e.model.item - 1;
+            }
+
+            _next() {
+                this.page = Math.min(this.pages.length - 1, this.page + 1);
+            }
+
+            _prev() {
+                this.page = Math.max(0, this.page - 1);
+            }
+            _timestampDate(timestamp) {
+                function addZero(i) {
+                    if (i < 10) {
+                        i = "0" + i;
+                    }
+                    return i;
+                }
+                var pubDate = new Date(timestamp * 1000); //expects milliseconds
+                var weekday = new Array("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
+                var monthname = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
+                    "Nov", "Dec");
+                var formattedDate = weekday[pubDate.getDay()] + ' ' +
+                    monthname[pubDate.getMonth()] + ' ' + pubDate.getDate() + ', ' + pubDate.getFullYear() +
+                    ', ' + addZero(pubDate.getHours()) + ':' + addZero(pubDate.getMinutes()) + ':' +
+                    addZero(pubDate.getSeconds())
+                return formattedDate;
+            }
+
+            _lastfilterSubmit() {
+                this.loading = true;
+                $.getJSON(this.mainurl + 'last=' + this.lastfilter, (data) => {
+                    this.items = data;
+                    this.loading = false;
+                })
+            }
+
+            _fromlimitSubmit() {
+                this.loading = true;
+                $.getJSON(this.mainurl + 'from=' + this.fromfilter + '&limit=' + this.limitfilter, (data) => {
+                    this.items = data;
+                    this.loading = false;
+                })
+            }
+
+            _objidfilterSubmit() {
+                this.loading = true;
+                $.getJSON(this.storagesobjapi + '/' + this.routeData.storageid + '.' + this.objidfilter, (data) => {
+                    this.items = [data];
+                    this.loading = false;
+                })
+            }
+        }
+
+        window.customElements.define(PageStoragesDetail.is, PageStoragesDetail);
+    </script>
+</dom-module>

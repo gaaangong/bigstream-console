@@ -1,0 +1,168 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/vaadin-grid/all-imports.html">
+
+<link rel="import" href="/bower_components/paper-fab/paper-fab.html">
+
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="page-storages">
+  <template>
+    <style include="app-grid-style"></style>
+    <style include="shared-styles">
+       :host {
+        display: block;
+        --app-grid-columns: 1;
+        --app-grid-gutter: 15px;
+        --app-grid-columns: 1;
+        --app-grid-item-height: 100%;
+        --app-grid-item-height: 100px;
+        --paper-card: {
+
+          width: 100%;
+        }
+      }
+
+      .app-grid {
+        height: 100%;
+      }
+
+      ul {
+        padding: 0;
+        list-style: none;
+      }
+
+      .item {
+        background-color: white;
+        height: 100%;
+      }
+
+      paper-input {
+        width: 100%;
+        height: 100%;
+      }
+
+
+      vaadin-grid {
+        border-right: 0;
+        border-left: 0;
+        height: 100%;
+      }
+
+      app-toolbar {
+        background-color: #fff;
+        border-bottom: 1px solid var(--paper-grey-300)
+      }
+
+      paper-input[label="Search"] {
+        width: 27%;
+        float: right;
+        padding: 0 28px;
+      }
+
+      paper-fab.createJobFab {
+        --paper-fab-background: var(--paper-light-blue-700);
+        position: fixed;
+        right: 20px;
+        bottom: 70px;
+        z-index: 100;
+      }
+    </style>
+    <app-toolbar>
+      <div main-title>
+        <iron-icon icon="device:storage"></iron-icon> [[titlePage]]</div>
+      <paper-input label="Search" value="{{_filterJobName::input}}">
+        <iron-icon icon="icons:search" slot="prefix"></iron-icon>
+      </paper-input>
+    </app-toolbar>
+    <!-- Fetch an array of users to be shown in the grid -->
+    <!--<iron-ajax url="[[storagesapi]]" handle-as="json" last-response="{{storages}}" id="updateStorageLists" on-response="_loadStoragesComplete"></iron-ajax>-->
+    <iron-ajax url="/src/config/storage_lists.json" handle-as="json" last-response="{{storages}}" id="updateStorageLists" on-response="_loadStoragesComplete"></iron-ajax>
+
+    <!-- The array is set as the <vaadin-grid>'s "items" property -->
+    <x-array-data-provider items="{{storageLists}}"></x-array-data-provider>
+    <div class="app-grid">
+      <paper-card class="item">
+        <vaadin-grid class="material" id="material" items="[[storageLists]]">
+
+          <vaadin-grid-column width="50px" flex-grow="0">
+            <template class="header">#</template>
+            <template>[[index]]</template>
+          </vaadin-grid-column>
+
+          <vaadin-grid-column width="100px" flex="0">
+            <template class="header">
+              <vaadin-grid-filter aria-label="Job Name" path="_jid" value="[[_filterJobName]]">
+                <input slot="filter" type="text" hidden>
+              </vaadin-grid-filter>
+              <vaadin-grid-sorter path="_jid">
+                <div class="cell">
+                  <span>Name</span>
+                  <iron-icon icon="icons:arrow-upward"></iron-icon>
+                </div>
+              </vaadin-grid-sorter>
+            </template>
+            <template>
+              <a href="/storages/detail/[[item._jid]]">
+                <div class="cell">[[item._jid]]</div>
+              </a>
+            </template>
+          </vaadin-grid-column>
+
+        </vaadin-grid>
+      </paper-card>
+    </div>
+    <paper-toast autoFitOnAttach id="toast"></paper-toast>
+  </template>
+
+  <script>
+    class PageStorages extends Polymer.Element {
+      static get is() {
+        return 'page-storages';
+      }
+
+      static get properties() {
+        return {
+          titlePage: {
+            type: String,
+            value: 'Storages lists'
+          },
+          storageLists: {
+            type: Array,
+            value: []
+          }
+        };
+      }
+      ready() {
+        super.ready();
+
+        Polymer.RenderStatus.afterNextRender(this, function () {
+          this._updatestorageLists();
+        });
+
+      }
+      _updatestorageLists() {
+        this.$.updateStorageLists.generateRequest();
+      }
+      _loadStoragesComplete() {
+        this.storages.forEach(function (element) {
+          this.storageLists.push({
+            "_jid": element,
+          });
+        }, this);
+        this.$.material.clearCache();
+      }
+    }
+
+    window.customElements.define(PageStorages.is, PageStorages);
+  </script>
+</dom-module>

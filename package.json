@@ -1,14 +1,18 @@
 {
-    "name": "bigstream-console",
-    "dependencies": {
-        "electron": "^1.7.4"
-    },
-    "scripts": {
-        "start": "electron ."
-    },
-    "main": "main.js",
-    "version": "0.0.0",
-    "license": "MIT",
-    "description": "",
-    "author": "gangnobi"
+  "name": "bigstream-console",
+  "dependencies": {
+    "electron": "^1.7.4"
+  },
+  "scripts": {
+    "start": "electron ."
+  },
+  "main": "main.js",
+  "version": "0.0.0",
+  "license": "MIT",
+  "description": "",
+  "author": "gangnobi",
+  "devDependencies": {
+    "electron-inspector": "^0.1.4",
+    "electron-rebuild": "^1.5.11"
+  }
 }

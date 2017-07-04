@@ -1,0 +1,6 @@
+{
+    "app_name": "Bigstream console",
+    "job_api": "http://vm-gang.igridproject.info:19980/v1/jobs",
+    "storages_api": "http://bigmaster.igridproject.info:19080/v0.1/storage",
+    "storages_obj_api": "http://bigmaster.igridproject.info:19080/v0.1/object"
+}

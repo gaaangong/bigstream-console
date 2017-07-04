@@ -1,0 +1,81 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+
+<!--
+`<jsoneditor>` is Description
+
+@element jsoneditor
+-->
+<dom-module id="jsonviewer-element">
+    <template>
+
+        <link href="../../asset/jsoneditor/jsoneditor.css" rel="stylesheet" type="text/css">
+        <style>
+             :host {
+                display: block;
+                background: #fcfcfc;
+                -webkit-box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
+                box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
+            }
+
+            div#jsoneditor {
+                min-height: 150px;
+            }
+
+            div.jsoneditor {
+                border: 0!important;
+            }
+
+            .jsoneditor-menu {
+                display: none;
+            }
+
+            div.jsoneditor-outer {
+                margin: 0!important;
+                padding: 10px 0 10px 56px!important;
+            }
+        </style>
+
+        <div id="jsoneditor"></div>
+    </template>
+
+    <script src="../../asset/jsoneditor/jsoneditor.js"></script>
+    <script>
+        class jsonviewerElement extends Polymer.Element {
+
+            static get is() {
+                return 'jsonviewer-element';
+            }
+
+            static get properties() {
+                return {
+                    jsoneditor: Object,
+                    json: JSON
+                };
+            }
+
+            constructor() {
+                super();
+            }
+
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+                    var options = {
+                        mode: 'view',
+                        onError: function (err) {
+                            alert(err.toString());
+                        }
+                    };
+
+                    this.jsoneditor = new JSONEditor(this.$.jsoneditor, options, this.json);
+                    // this.jsoneditor.expandAll();
+
+                });
+            }
+
+        }
+
+        window.customElements.define(jsonviewerElement.is, jsonviewerElement);
+    </script>
+</dom-module>
