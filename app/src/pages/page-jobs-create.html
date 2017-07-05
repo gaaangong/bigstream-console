@@ -20,6 +20,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <dom-module id="page-createjob">
   <template>
+    <style include="bootstrap"></style>
     <style include="app-grid-style"></style>
     <link href="../../asset/jsoneditor/jsoneditor.css" rel="stylesheet" type="text/css">
     <style include="shared-styles">
@@ -212,7 +213,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <app-toolbar class="footer">
       <iron-ajax id="addDataAjax" url="[[jobapi]]" handle-as="json" method="POST" on-response="_addComplete" on-error="_addError"
         content-type="application/json"></iron-ajax>
-      <paper-button raised class="green none-shadow" on-click="_addJob">Add</paper-button>
+      <paper-button class="btn btn-success green" on-click="_addJob">Add</paper-button>
     </app-toolbar>
     <iron-location path='{{path}}'></iron-location>
   </template>

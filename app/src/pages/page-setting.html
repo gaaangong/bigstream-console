@@ -1,0 +1,144 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="/bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../shared-styles.html">
+<!--
+`<setting>` is Description
+
+@element setting
+-->
+<dom-module id="page-setting">
+    <template>
+        <style include="bootstrap"></style>
+        <style include="app-grid-style"></style>
+        <style include="shared-styles">
+             :host {
+                display: block;
+                box-sizing: border-box;
+            }
+
+            app-toolbar {
+                background-color: #fff;
+                border-bottom: 1px solid var(--paper-grey-300);
+                color: #448ee2;
+                margin-bottom: 30px;
+            }
+
+            paper-card {
+                width: 100%;
+            }
+
+            .detail {
+                border-left: 1px solid #ddd;
+                color: var(--paper-grey-500);
+            }
+
+            h6 {
+                color: var(--paper-grey-700);
+            }
+
+            .form-label {
+                vertical-align: text-bottom;
+                padding-top: 10px;
+                margin-bottom: 15px;
+            }
+
+            .submit {
+                margin-top: 15px;
+                text-align: right;
+            }
+        </style>
+
+
+        <app-toolbar>
+            <div main-title>
+                [[titlePage]] </div>
+        </app-toolbar>
+        <div class="container">
+            <div class="row">
+                <div class="col-12 section-card">
+                    <h6>API</h6>
+                    <paper-card image="" elevation="1" animated-shadow="true">
+                        <div class="card-content">
+                            <div class="d-flex">
+                                <div style="width: 70%;padding-right:15px;">
+                                    <div class="form-group row">
+                                        <label for="example-text-input" class="col-2 col-form-label">Job API</label>
+                                        <div class="col-10">
+                                            <input class="form-control" type="text" value="{{config.job_api}}" id="example-text-input">
+                                        </div>
+                                    </div>
+                                    <hr/>
+                                    <div class="form-group row">
+                                        <label for="example-search-input" class="col-2 col-form-label">Storages API</label>
+                                        <div class="col-10">
+                                            <input class="form-control" type="search" value="{{config.storages_api}}" id="example-search-input">
+                                        </div>
+                                    </div>
+                                    <hr/>
+                                    <div class="form-group row">
+                                        <label for="example-search-input" class="col-2 col-form-label">Storages object API</label>
+                                        <div class="col-10">
+                                            <input class="form-control" type="search" value="{{config.storages_obj_api}}" id="example-search-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="align-self-start detail" style="width: 30%;padding-left:15px;">
+                                    <p> At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium
+                                        voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint
+                                        occaecati cupiditate non provident. </p>
+                                </div>
+                            </div>
+                        </div>
+                    </paper-card>
+                </div>
+                <div class="col-12 submit">
+                    <paper-button class="btn btn-success">Save</paper-button>
+                </div>
+            </div>
+        </div>
+
+        </div>
+
+
+    </template>
+
+    <script>
+        class setting extends Polymer.Element {
+
+            static get is() { return 'page-setting'; }
+
+            static get properties() {
+                return {
+                    titlePage: {
+                        type: String,
+                        value: 'Setting'
+                    },
+                    tabselected: {
+                        type: Number,
+                        value: 0
+                    },
+                    config: {
+                        type: Object,
+                        value: () => { return Global.config }
+                    }
+                };
+            }
+
+            constructor() {
+                super();
+            }
+
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                });
+            }
+
+        }
+
+        window.customElements.define(setting.is, setting);
+    </script>
+</dom-module>
