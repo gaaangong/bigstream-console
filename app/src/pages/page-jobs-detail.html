@@ -21,6 +21,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <link href="../../asset/jsoneditor/jsoneditor.css" rel="stylesheet" type="text/css">
         <style include="shared-styles">
              :host {
+                margin-bottom: 50px;
+                box-sizing: border-box;
                 display: block;
                 --app-grid-columns: 2;
                 --app-grid-gutter: 15px;
@@ -40,9 +42,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }
 
             app-toolbar {
-                color: #616161;
                 background-color: #fff;
-                border-bottom: 1px solid var(--paper-grey-300)
+                border-bottom: 1px solid var(--paper-grey-300);
+                position: fixed;
+                right: 0;
+                top: 0;
+                z-index: 1;
+                left: var(--app-drawer-width);
             }
 
             .code>div {
@@ -150,8 +156,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </style>
 
         <app-route route="[[route]]" pattern="/:jobid" data="{{routeData}}"></app-route>
-        <iron-ajax auto url="[[jobapi]]/[[routeData.jobid]]" handle-as="json" on-response="_loadJobComplete"
-            last-response="{{jobDetail}}" id="updateJobsDetail"></iron-ajax>
+        <iron-ajax auto url="[[jobapi]]/[[routeData.jobid]]" handle-as="json" on-response="_loadJobComplete" last-response="{{jobDetail}}"
+            id="updateJobsDetail"></iron-ajax>
 
         <app-toolbar>
             <div main-title>[[titlePage]] : {{routeData.jobid}}</div>
@@ -240,8 +246,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         </div>
         <app-toolbar class="footer">
-            <iron-ajax id="addDataAjax" url="[[jobapi]]" handle-as="json" method="POST" on-response="_addComplete"
-                on-error="_addError" content-type="application/json"></iron-ajax>
+            <iron-ajax id="addDataAjax" url="[[jobapi]]" handle-as="json" method="POST" on-response="_addComplete" on-error="_addError"
+                content-type="application/json"></iron-ajax>
             <paper-button raised class="green none-shadow" on-click="_addJob">Edit</paper-button>
         </app-toolbar>
         <iron-location path='{{path}}'></iron-location>
@@ -449,8 +455,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 this._codeJSONchange();
             }
 
-            _reloadJobDetail(){
-                 this.$.updateJobsDetail.generateRequest();
+            _reloadJobDetail() {
+                this.$.updateJobsDetail.generateRequest();
             }
         }
 

@@ -23,6 +23,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        :host {
         --app-grid-columns: 1;
         --app-grid-gutter: 15px;
+        box-sizing: border-box;
+        display: block;
       }
 
       ul {
@@ -48,7 +50,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       app-toolbar {
         background-color: #fff;
-        border-bottom: 1px solid var(--paper-grey-300)
+        border-bottom: 1px solid var(--paper-grey-300);
+        position: fixed;
+        right: 0;
+        top: 0;
+        z-index: 1;
+        left: var(--app-drawer-width);
       }
 
       paper-input[label="Search"] {
@@ -64,6 +71,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         bottom: 70px;
         z-index: 100;
       }
+      .main-page {
+        height: 100%;
+      }
     </style>
     <a href="/jobs/create">
       <paper-fab mini icon="icons:add" title="Create job" class="createJobFab"></paper-fab>
@@ -75,11 +85,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </paper-input>
     </app-toolbar>
     <!-- Fetch an array of users to be shown in the grid -->
-    <iron-ajax url="[[jobapi]]" handle-as="json" last-response="{{jobs}}" id="updateJobsList" on-response="_loadJobsComplete"></iron-ajax>
+    <iron-ajax auto loading="{{loading}}" url="[[jobapi]]" handle-as="json" last-response="{{jobs}}" on-error="_ajexerror" id="updateJobsList"
+      on-response="_loadJobsComplete"></iron-ajax>
 
     <!-- The array is set as the <vaadin-grid>'s "items" property -->
+    <template is="dom-if" if="[[loading]]">
+      <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;"></paper-progress>
+    </template>
     <x-array-data-provider items="{{jobLists}}"></x-array-data-provider>
-    <div class="app-grid">
+    <div class="app-grid main-page">
       <paper-card class="item">
         <vaadin-grid class="material" id="material" items="[[jobLists]]">
 
@@ -110,8 +124,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               </a>
             </template>
           </vaadin-grid-column>
-
         </vaadin-grid>
+
+        <template is="dom-if" if="[[job_error]]">
+          <div class="alert alert-danger" role="alert" style="margin:15px;">
+            <strong>Error !</strong> Can't GET [[jobapi]] , 404 (Not Found)
+          </div>
+        </template>
       </paper-card>
     </div>
     <app-toolbar class="footer">
@@ -138,7 +157,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           jobLists: {
             type: Array,
             value: []
-          }
+          },
+          loading: {
+            type: Boolean,
+            notify: true,
+            value: false
+          },
         };
       }
       ready() {
@@ -162,6 +186,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
       _loadJobsComplete() {
+        this.job_error = false;
         if (this.jobs) {
           this.jobLists = [];
           var jobLists = this.jobLists;
@@ -185,6 +210,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       _deleteError() {
 
+      }
+      _ajexerror(ev) {
+        this.jobLists = [];
+        this.$.material.clearCache();
+        this.job_error = true;
       }
     }
 

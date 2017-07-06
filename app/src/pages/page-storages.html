@@ -20,6 +20,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="app-grid-style"></style>
     <style include="shared-styles">
        :host {
+        box-sizing: border-box;
         display: block;
         --app-grid-columns: 1;
         --app-grid-gutter: 15px;
@@ -58,9 +59,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       app-toolbar {
-        background-color: #fff;
-        border-bottom: 1px solid var(--paper-grey-300)
-      }
+                background-color: #fff;
+                border-bottom: 1px solid var(--paper-grey-300);
+                position: fixed;
+                right: 0;
+                top: 0;
+                z-index: 1;
+                left: var(--app-drawer-width);
+            }
 
       paper-input[label="Search"] {
         width: 27%;

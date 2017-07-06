@@ -19,8 +19,11 @@
             app-toolbar {
                 background-color: #fff;
                 border-bottom: 1px solid var(--paper-grey-300);
-                color: #448ee2;
-                margin-bottom: 30px;
+                position: fixed;
+                right: 0;
+                top: 0;
+                z-index: 1;
+                left: var(--app-drawer-width);
             }
 
             paper-card {
@@ -43,6 +46,10 @@
             .submit {
                 margin-top: 15px;
                 text-align: right;
+            }
+
+            .section-card{
+                margin-top: 15px;
             }
         </style>
 
@@ -140,6 +147,7 @@
                     'api.storages_api': this.config.api.storages_api,
                     'api.storages_obj_api': this.config.api.storages_obj_api
                 });
+                this.dispatchEvent(new CustomEvent('config-update'));
                 this.$.toast.text = "Config saved";
                 this.$.toast.horizontalAlign = "right";
                 this.$.toast.verticalAlign = "top";

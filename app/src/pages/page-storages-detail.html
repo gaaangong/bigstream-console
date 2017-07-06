@@ -28,6 +28,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <style include="app-grid-style"></style>
         <style include="shared-styles">
              :host {
+                box-sizing: border-box;
+                display: block;
                 --app-grid-columns: 2;
                 --app-grid-gutter: 15px;
                 --app-grid-expandible-item-columns: 2;
@@ -40,6 +42,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }
 
             vaadin-grid.material {
+                height: 100%;
                 --vaadin-grid-body-cell: {
                     display: block;
                     cursor: pointer;
@@ -70,7 +73,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             app-toolbar {
                 background-color: #fff;
-                border-bottom: 1px solid var(--paper-grey-300)
+                border-bottom: 1px solid var(--paper-grey-300);
+                position: fixed;
+                right: 0;
+                top: 0;
+                z-index: 1;
+                left: var(--app-drawer-width);
             }
 
             paper-fab.createJobFab {
@@ -189,6 +197,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 --iron-icon-height: 21px;
                 padding-right: 14px;
             }
+
+            .main-page {
+                height: 100%;
+                overflow: hidden;
+            }
         </style>
         <!-- Fetch an array of users to be shown in the grid -->
         <app-route route="[[route]]" pattern="/:storageid" data="{{routeData}}"></app-route>
@@ -209,7 +222,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
 
         <x-array-data-provider items="{{items}}"></x-array-data-provider>
-        <div class="app-grid">
+        <div class="app-grid main-page">
             <paper-card class="item datalist">
                 <div class="filter">
                     <paper-tabs selected="{{filterselected}}">

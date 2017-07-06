@@ -55,12 +55,16 @@
         background: var(--paper-grey-100);
         font-family: 'Roboto', sans-serif;
         color: #2f323a;
+        box-sizing: border-box;
       }
 
       app-toolbar {
-        background: var(--app-primary-color);
-        color: #fff;
-        height: 50px;
+        background-color: #fff;
+        border-bottom: 1px solid var(--paper-grey-300);
+        position: fixed;
+        right: 0;
+        z-index: 1;
+        left: var(--app-drawer-width);
       }
 
       app-drawer {
@@ -78,9 +82,22 @@
       page-createjob,
       page-jobs-detail,
       page-storages,
-      page-storages-detail {
-        height: auto;
+      page-storages-detail,
+      page-setting {
+        height: 100%;
+        box-sizing: border-box;
       }
+
+      page-jobs,
+      page-createjob,
+      page-jobs-detail,
+      page-storages,
+      page-storages-detail,
+      page-setting {
+        padding-bottom: 65px;
+        padding-top: 65px;
+      }
+
 
       @media all and (min-width: 641px) {
         .toggle-drawer {
@@ -117,7 +134,7 @@
         <page-jobs-detail name="jobs-detail" route="{{pageid}}" id="jobs-detail" jobapi="{{jobapi}}"></page-jobs-detail>
         <page-storages id="storages" name="storages" storagesapi="{{storagesapi}}"></page-storages>
         <page-storages-detail id="storages-detail" name="storages-detail" route="{{pageid}}" storagesapi="{{storagesapi}}" storagesobjapi="{{storagesobjapi}}"></page-storages-detail>
-        <page-setting name="setting"></page-setting>
+        <page-setting name="setting" id="setting"></page-setting>
         <page-view404 id="view404" name="view404"></page-view404>
       </iron-pages>
     </app-drawer-layout>
@@ -174,10 +191,8 @@
         super.ready();
 
         Polymer.RenderStatus.afterNextRender(this, function () {
-          this.jobapi = store.get('api.job_api');
-          this.storagesapi = store.get('api.storages_api')
-          this.storagesobjapi = store.get('api.storages_obj_api');
-
+          this.$.setting.addEventListener('config-update', this._updateConfig.bind(this));
+          this._updateConfig();
           this.$.sidemenu.addEventListener('collapsechange', () => {
             this.iscollapse = !this.iscollapse;
             this.$.sidemenu.iscollapse = this.iscollapse;
@@ -185,6 +200,11 @@
 
         });
 
+      }
+      _updateConfig() {
+        this.jobapi = store.get('api.job_api');
+        this.storagesapi = store.get('api.storages_api')
+        this.storagesobjapi = store.get('api.storages_obj_api');
       }
       _routePageChanged(page) {
         // Polymer 2.0 will call with `undefined` on initialization.

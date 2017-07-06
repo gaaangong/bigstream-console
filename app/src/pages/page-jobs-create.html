@@ -25,11 +25,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link href="../../asset/jsoneditor/jsoneditor.css" rel="stylesheet" type="text/css">
     <style include="shared-styles">
        :host {
+        box-sizing: border-box;
         display: block;
         --app-grid-columns: 2;
         --app-grid-gutter: 15px;
         position: relative;
-        margin-bottom: 50px;
         --paper-dropdown-menu: {
           width: 30%;
           position: absolute;
@@ -44,9 +44,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       app-toolbar {
-        color: #616161;
         background-color: #fff;
-        border-bottom: 1px solid var(--paper-grey-300)
+        border-bottom: 1px solid var(--paper-grey-300);
+        position: fixed;
+        right: 0;
+        top: 0;
+        z-index: 11;
+        left: var(--app-drawer-width);
       }
 
       .code>div {
@@ -55,6 +59,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       .code div.jsoneditor-menu {
         background-color: var(--paper-blue-500);
+      }
+
+      paper-card {
+        overflow: scroll;
       }
 
       paper-card.form #jsoneditor {
@@ -157,6 +165,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         right: 12px;
         top: 12px;
       }
+
+      .main-page {
+        height: 100%;
+      }
     </style>
 
     <app-toolbar>
@@ -168,7 +180,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </paper-listbox>
       </paper-dropdown-menu>
     </app-toolbar>
-    <div class="app-grid">
+    <div class="app-grid main-page">
       <paper-card class="item form" mode-active$="[[!codeMode]]">
         <div class="editor">
 
