@@ -22,7 +22,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 display: block;
                 --app-grid-columns: 12;
                 --app-grid-item-height: 100px;
-                margin-bottom: 50px;
                 --paper-dropdown-menu: {
                     position: absolute;
                     right: 10px;
@@ -115,16 +114,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 color: white;
                 padding: 5px;
             }
+
+            .main-page {
+                height: 100%;
+            }
         </style>
 
         <app-route route="[[route]]" pattern="/:jobid" data="{{routeData}}"></app-route>
-        <iron-ajax auto url="[[jobapi]]/[[routeData.jobid]]" handle-as="json" on-response="_loadJobComplete"
-            last-response="{{jobDetail}}" id="updateJobsDetail"></iron-ajax>
+        <iron-ajax auto url="[[jobapi]]/[[routeData.jobid]]" handle-as="json" on-response="_loadJobComplete" last-response="{{jobDetail}}"
+            id="updateJobsDetail"></iron-ajax>
 
         <app-toolbar>
             <div main-title>[[titlePage]] : {{routeData.jobid}}</div>
         </app-toolbar>
-        <div class="editor">
+        <div class="editor main-page">
 
             <!--General detail-->
             <div class="jsonlabel">
@@ -194,8 +197,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
 
         <app-toolbar class="footer">
-            <iron-ajax id="addDataAjax" url="[[jobapi]]" handle-as="json" method="POST" on-response="_addComplete"
-                on-error="_addError" content-type="application/json"></iron-ajax>
+            <iron-ajax id="addDataAjax" url="[[jobapi]]" handle-as="json" method="POST" on-response="_addComplete" on-error="_addError"
+                content-type="application/json"></iron-ajax>
             <paper-button raised class="green none-shadow" on-click="_addJob">Edit</paper-button>
         </app-toolbar>
     </template>

@@ -77,7 +77,7 @@
                     };
 
                     this.jsoneditor = new JSONEditor(this.$.jsoneditor, options, this.json);
-                    this.dispatchEvent(this.editorchange);
+                    if (!this.editting) this.dispatchEvent(this.editorchange);
                     this.jsoneditor.expandAll();
                 });
             }
