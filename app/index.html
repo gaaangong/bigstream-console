@@ -28,18 +28,12 @@
   </style>
 </head>
 <script>
-  const Global = {};
-  // default config
-  Global.config = {
-    "app_name": "Bigstream console",
-    "job_api": "http://localhost:19980/v1/jobs",
-    "storages_api": "http://localhost:19080/v0.1/storage",
-    "storages_obj_api": "http://localhost:19080/v0.1/object"
-  };
-  // Load config file
-  $.getJSON('/config.json', (res) => {
-    Global.config = res;
-  })
+  // Electron IPC
+  const ipc = require('electron').ipcRenderer;
+
+  // config
+  const Store = require('electron-store');
+  const store = new Store();
 
 </script>
 

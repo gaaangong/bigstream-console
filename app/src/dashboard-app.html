@@ -29,6 +29,7 @@
 <link rel="import" href="./common/dashboard-sidemenu.html">
 
 <link rel="import" href="./bootstrap.html">
+<link rel="import" href="./shared-styles.html">
 
 <link rel="lazy-import" href="./pages/page-view404.html">
 
@@ -43,8 +44,8 @@
 
 <dom-module id="dashboard-app">
   <template>
-
-    <style>
+    <style include="bootstrap"></style>
+    <style include="shared-styles">
        :host {
         display: block;
         --app-primary-color: #2f323a;
@@ -52,7 +53,7 @@
         --app-drawer-width: 200px;
         height: 100%;
         background: var(--paper-grey-100);
-        font-family: "Roboto";
+        font-family: 'Roboto', sans-serif;
         color: #2f323a;
       }
 
@@ -173,9 +174,9 @@
         super.ready();
 
         Polymer.RenderStatus.afterNextRender(this, function () {
-          this.jobapi = Global.config.job_api;
-          this.storagesapi = Global.config.storages_api;
-          this.storagesobjapi = Global.config.storages_obj_api;
+          this.jobapi = store.get('api.job_api');
+          this.storagesapi = store.get('api.storages_api')
+          this.storagesobjapi = store.get('api.storages_obj_api');
 
           this.$.sidemenu.addEventListener('collapsechange', () => {
             this.iscollapse = !this.iscollapse;
@@ -239,4 +240,5 @@
 
     window.customElements.define(DashboardApp.is, DashboardApp);
   </script>
+
 </dom-module>

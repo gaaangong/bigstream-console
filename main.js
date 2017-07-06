@@ -2,8 +2,10 @@ const { app, BrowserWindow } = require('electron')
 const path = require('path')
 const url = require('url')
 
-// Express server
+// Modules
 require('./server.js')
+require('./modules/config.js')
+require('./modules/mainproc.js')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

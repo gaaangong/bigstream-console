@@ -10,11 +10,10 @@
 <dom-module id="page-setting">
     <template>
         <style include="bootstrap"></style>
-        <style include="app-grid-style"></style>
-        <style include="shared-styles">
+        <style>
              :host {
                 display: block;
-                box-sizing: border-box;
+                box-sizing: border-box!important;
             }
 
             app-toolbar {
@@ -37,10 +36,8 @@
                 color: var(--paper-grey-700);
             }
 
-            .form-label {
-                vertical-align: text-bottom;
-                padding-top: 10px;
-                margin-bottom: 15px;
+            .col-form-label {
+                font-size: 14px;
             }
 
             .submit {
@@ -49,7 +46,7 @@
             }
         </style>
 
-
+        <paper-toast autoFitOnAttach id="toast" duration="1000"></paper-toast>
         <app-toolbar>
             <div main-title>
                 [[titlePage]] </div>
@@ -63,23 +60,23 @@
                             <div class="d-flex">
                                 <div style="width: 70%;padding-right:15px;">
                                     <div class="form-group row">
-                                        <label for="example-text-input" class="col-2 col-form-label">Job API</label>
-                                        <div class="col-10">
-                                            <input class="form-control" type="text" value="{{config.job_api}}" id="example-text-input">
+                                        <label for="example-text-input" class="col-12 col-form-label">Job API</label>
+                                        <div class="col-12">
+                                            <input class="form-control" type="text" value="{{config.api.job_api::input}}" id="example-text-input">
                                         </div>
                                     </div>
                                     <hr/>
                                     <div class="form-group row">
-                                        <label for="example-search-input" class="col-2 col-form-label">Storages API</label>
-                                        <div class="col-10">
-                                            <input class="form-control" type="search" value="{{config.storages_api}}" id="example-search-input">
+                                        <label for="example-search-input" class="col-12 col-form-label">Storages API</label>
+                                        <div class="col-12">
+                                            <input class="form-control" type="search" value="{{config.api.storages_api::input}}" id="example-search-input">
                                         </div>
                                     </div>
                                     <hr/>
                                     <div class="form-group row">
-                                        <label for="example-search-input" class="col-2 col-form-label">Storages object API</label>
-                                        <div class="col-10">
-                                            <input class="form-control" type="search" value="{{config.storages_obj_api}}" id="example-search-input">
+                                        <label for="example-search-input" class="col-12 col-form-label">Storages object API</label>
+                                        <div class="col-12">
+                                            <input class="form-control" type="search" value="{{config.api.storages_obj_api::input}}" id="example-search-input">
                                         </div>
                                     </div>
                                 </div>
@@ -93,7 +90,7 @@
                     </paper-card>
                 </div>
                 <div class="col-12 submit">
-                    <paper-button class="btn btn-success">Save</paper-button>
+                    <paper-button class="btn btn-success" on-click="_savebt">Save</paper-button>
                 </div>
             </div>
         </div>
@@ -120,7 +117,7 @@
                     },
                     config: {
                         type: Object,
-                        value: () => { return Global.config }
+                        value: () => { return store.get() }
                     }
                 };
             }
@@ -137,8 +134,24 @@
                 });
             }
 
+            _savebt(ev) {
+                store.set({
+                    'api.job_api': this.config.api.job_api,
+                    'api.storages_api': this.config.api.storages_api,
+                    'api.storages_obj_api': this.config.api.storages_obj_api
+                });
+                this.$.toast.text = "Config saved";
+                this.$.toast.horizontalAlign = "right";
+                this.$.toast.verticalAlign = "top";
+                this.$.toast.open();
+            }
+
         }
 
         window.customElements.define(setting.is, setting);
+    </script>
+
+    <script>
+
     </script>
 </dom-module>

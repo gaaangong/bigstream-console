@@ -1,7 +1,8 @@
 {
   "name": "bigstream-console",
   "dependencies": {
-    "electron": "^1.7.4"
+    "electron": "^1.7.4",
+    "electron-store": "^1.2.0"
   },
   "scripts": {
     "start": "electron ."
