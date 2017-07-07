@@ -1,0 +1,353 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/vaadin-split-layout/vaadin-split-layout.html">
+
+<link rel="import" href="../common/plugin-select.html">
+<link rel="import" href="../common/jobeditor/joblist.html">
+<!--
+`<Name>` is Description
+
+@element Name
+-->
+<dom-module id="page-jobs-editor">
+    <template>
+        <link href="../../asset/jsoneditor/jsoneditor.css" rel="stylesheet" type="text/css">
+        <style include="bootstrap"></style>
+        <style include="shared-styles">
+             :host {
+                display: block;
+                box-sizing: border-box;
+                padding-bottom: 0!important;
+            }
+
+            .main-page {
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .main-page,
+            .main-page>div,
+            vaadin-split-layout {
+                height: 100%;
+                width: 100%;
+            }
+
+            .split {
+                background: #fff;
+                --vaadin-split-layout-splitter: {
+                    background: var(--paper-grey-200);
+                }
+                ;
+            }
+
+            .code>div {
+                height: 100%;
+            }
+
+            .code div.jsoneditor-menu {
+                background-color: var(--paper-blue-500);
+            }
+
+            .editor {
+                position: absolute;
+                top: 0;
+                max-width: 400px;
+                width: 400px;
+                right: -400px;
+                overflow: scroll;
+                border-left: #e0e0e0 solid 1px;
+                transition: all 0.3s ease;
+            }
+
+            .editor #data_out {
+                margin-bottom: 30px;
+            }
+
+            .editor[opened] {
+                right: 0;
+                box-shadow: 0 0 33px 0px rgba(0, 0, 0, 0.1)
+            }
+
+            .editor #jsoneditor {
+                height: 500px;
+                border: none;
+            }
+
+            .jsoneditor {
+                border: none!important;
+            }
+
+            .editor div.jsoneditor-menu,
+            #code div.jsoneditor-menu {
+                background-color: #edeff5!important;
+                border-bottom: 1px solid var(--google-grey-100)!important;
+                color: #444!important
+            }
+
+            .editor div.jsoneditor-menu>button,
+            .editor div.jsoneditor-menu>div.jsoneditor-modes>button,
+            #code div.jsoneditor-menu>button,
+            #code div.jsoneditor-menu>div.jsoneditor-modes>button {
+                background-color: #5093e1!important;
+                cursor: pointer;
+            }
+
+            #code .ace-jsoneditor .ace_gutter {
+                background: #fbfbfb;
+                color: #6f6f6f;
+            }
+
+            #code .ace-jsoneditor.ace_editor {
+                font-size: 14px!important;
+            }
+
+            .editor div.jsoneditor-menu {
+                display: none;
+            }
+
+            .editor div.jsoneditor-outer {
+                margin: 0!important;
+                padding: 0!important;
+            }
+
+            div.editor>div {
+                padding: 10px 20px;
+                position: relative;
+            }
+
+            div.editor .jsonlabel {
+                color: #616161;
+                padding: 0 20px;
+                border: 1px solid var(--google-grey-300);
+                border-width: 1px 0 0 0px;
+                display: flex;
+            }
+
+            div.editor .jsonlabel:first-child {
+                border-top: 0;
+            }
+
+            div.jsoneditor-tree {
+                overflow: visible!important;
+            }
+
+            div.editor .jsonlabel h7 {
+                padding-top: 17px;
+                font-size: 14px;
+            }
+
+            div.editor {
+                background: #fff;
+            }
+
+            #code div.jsoneditor-menu a.jsoneditor-poweredBy {
+                display: none;
+            }
+
+            table.jsoneditor-tree>tbody>tr:first-child {
+                display: none;
+            }
+
+            .toggleEditor {
+                min-width: initial;
+                --iron-icon-width: 19px;
+            }
+        </style>
+
+        <app-toolbar>
+            <div main-title>
+                [[titlePage]] </div>
+            <paper-button class="btn btn-secondary toggleEditor" on-click="_toggleEditor">
+                <iron-icon icon="icons:menu"></iron-icon>
+            </paper-button>
+        </app-toolbar>
+        <div class="container-fluid no-gutters main-page">
+            <div class="row no-gutters">
+                <vaadin-split-layout class="split">
+                    <div id="joblist" style="width: 100%;    overflow: hidden;">
+                        <joblist-element jobapi={{config.api.job_api}}></joblist-element>
+                    </div>
+                    <div id="code" style="min-width:140px;"></div>
+                </vaadin-split-layout>
+            </div>
+            <div class="editor" opened$="[[toggleEditor]]">
+
+                <!--General detail-->
+                <div class="jsonlabel">
+                    <h7>General detail</h7>
+                </div>
+                <div id="jsonDetail"></div>
+
+                <!--Trigger-->
+                <div class="jsonlabel">
+                    <h7>Trigger</h7>
+                    <paper-toggle-button checked="{{triggerToggle}}" on-change="_triggerToggle"></paper-toggle-button>
+                </div>
+                <plugin-select id="trigger" maxplugin="1" disabled="[[triggerToggle]]"></plugin-select>
+
+                <!--Data in-->
+                <div class="jsonlabel">
+                    <h7>Data in</h7>
+                </div>
+                <plugin-select id="data_in" maxplugin="1"></plugin-select>
+
+                <!--Data transform-->
+                <div class="jsonlabel">
+                    <h7>Data transform</h7>
+                </div>
+                <plugin-select id="data_transform"></plugin-select>
+
+                <!--Data out-->
+                <div class="jsonlabel">
+                    <h7>Data out</h7>
+                </div>
+                <plugin-select id="data_out" maxplugin="1"></plugin-select>
+            </div>
+        </div>
+
+    </template>
+
+    <script>
+        class PageJobsEditor extends Polymer.Element {
+
+            static get is() { return 'page-jobs-editor'; }
+
+            static get properties() {
+                return {
+                    titlePage: { value: "Job Editor" },
+                    jsoneditor: {
+                        type: Object,
+                        value: {}
+                    },
+                    codeMode: {
+                        type: Boolean,
+                        value: false
+                    },
+                    triggerToggle: {
+                        type: Boolean,
+                        value: true
+                    },
+                    jsonResult: {
+                        type: Object,
+                        value: {
+                            "job_id": "example",
+                            "active": true,
+                            "trigger": {},
+                            "data_in": {},
+                            "data_transform": {},
+                            "data_out": {}
+                        }
+                    }
+                };
+            }
+
+            constructor() {
+                super();
+            }
+
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+
+                    var jsoneditor = this.jsoneditor;
+
+                    $.getJSON("/src/config/jobPlugins.json", function (data) {
+                        jsoneditor.jobPlugins = data;
+                        var detail = {
+                            "job_id": "example",
+                            "active": true
+                        };
+
+                        this.$.trigger.plugins = data.trigger;
+                        this.$.data_in.plugins = data.data_in;
+                        this.$.data_transform.plugins = data.data_transform;
+                        this.$.data_out.plugins = data.data_out;
+
+                        this.$.trigger.addEventListener('jsonchanged', pluginSelectChange);
+                        this.$.data_in.addEventListener('jsonchanged', pluginSelectChange);
+                        this.$.data_transform.addEventListener('jsonchanged', pluginSelectChange);
+                        this.$.data_out.addEventListener('jsonchanged', pluginSelectChange);
+
+                        var options = {
+                            mode: 'code',
+                            modes: ['code', 'form', 'text', 'tree', 'view'],
+                            onChange: _codeJSONchange
+                        };
+
+                        var jsonDetailoptions = {
+                            mode: 'tree',
+                            onChange: _jsonDetailChange
+                        };
+
+                        jsoneditor.jsonDetail = new JSONEditor(this.$.jsonDetail, jsonDetailoptions, detail);
+                        jsoneditor.code = new JSONEditor(this.$.code, options, {});
+                        jsoneditor.jsonDetail.setMode('tree');
+
+                    }.bind(this));
+
+                    var _codeJSONchange = function (ev) {
+                        var newjson = this.jsoneditor.code.get();
+                        var detail = {
+                            "job_id": newjson.job_id,
+                            "active": newjson.active
+                        };
+                        if (newjson.trigger != this.$.trigger.get()) this.$.trigger.set(newjson.trigger);
+                        if (newjson.data_in != this.$.data_in.get()) this.$.data_in.set(newjson.data_in);
+                        if (newjson.data_transform != this.$.data_transform.get()) this.$.data_transform.set(newjson.data_transform);
+                        if (newjson.data_out != this.$.data_out.get()) this.$.data_out.set(newjson.data_out);
+                        this.jsoneditor.jsonDetail.set(detail);
+                        this.jsonResult = newjson;
+                    }.bind(this);
+
+                    var _jsonDetailChange = function () {
+                        this.jsonResult.job_id = this.jsoneditor.jsonDetail.get().job_id;
+                        this.jsonResult.active = this.jsoneditor.jsonDetail.get().active;
+                        this.jsoneditor.code.set(this.jsonResult);
+                    }.bind(this);
+
+                    var pluginSelectChange = function (ev) {
+                        this.jsonResult[ev.detail.id] = ev.detail.json;
+                        this.jsoneditor.code.set(this.jsonResult);
+                    }.bind(this);
+                });
+            }
+            _getJson() {
+                return this.jsoneditor.code.get();
+            }
+
+
+            _changeMode(e, element) {
+                if (element.item.textContent === 'Code') this.codeMode = true;
+                else this.codeMode = false;
+            }
+
+            _addJob() {
+                this.$.addDataAjax.body = this._getJson();
+                this.$.addDataAjax.generateRequest();
+            }
+
+            _addError(e) {
+                console.log(e);
+            }
+
+            _addComplete(e, res) {
+                this.path = "/jobs";
+            }
+
+            _triggerToggle(ev, el) {
+                if (!this.triggerToggle)
+                    delete this.jsonResult.trigger;
+                else
+                    this.jsonResult.trigger = {};
+                this.$.trigger.set(this.jsonResult.trigger);
+                this.jsoneditor.code.set(this.jsonResult);
+            }
+            _toggleEditor() {
+                this.toggleEditor = !this.toggleEditor;
+            }
+        }
+
+        window.customElements.define(PageJobsEditor.is, PageJobsEditor);
+    </script>
+</dom-module>

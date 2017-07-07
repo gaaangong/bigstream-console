@@ -1,0 +1,135 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/vaadin-grid/all-imports.html">
+<!--
+`<joblist>` is Description
+
+@element joblist
+-->
+<dom-module id="joblist-element">
+    <template>
+        <style include="bootstrap"></style>
+        <style include="shared-styles">
+             :host {
+                display: block;
+                height: 100%;
+            }
+
+            .joblist {
+                height: 100%;
+                border: 0;
+                --vaadin-grid-header-cell: {
+                    font-size: 14px;
+                    padding-left: 20px;
+                    height: initial;
+                }
+                --vaadin-grid-body-cell: {
+                    padding-left: 20px;
+                }
+
+                --vaadin-grid-body-row-hover-cell: {
+                    cursor: pointer;
+                }
+                ;
+            }
+
+            .addjobbt {
+                position: absolute;
+                top: 17px;
+                right: 10px;
+                --iron-icon-width: 14px;
+                min-width: initial;
+                padding: 0px 5px;
+            }
+
+            vaadin-grid.material .cell {
+                padding-right: 0!important;
+            }
+        </style>
+        <!-- Fetch an array of users to be shown in the grid -->
+        <iron-ajax auto loading="{{loading}}" url="[[jobapi]]" handle-as="json" last-response="{{jobs}}" on-error="_ajexerror" id="updateJobsList"
+            on-response="_loadJobsComplete"></iron-ajax>
+
+        <template is="dom-if" if="[[loading]]">
+            <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;"></paper-progress>
+        </template>
+
+        <x-array-data-provider items="{{jobLists}}"></x-array-data-provider>
+        <vaadin-grid class="material joblist" id="material" items="[[jobLists]]" on-active-item-changed="_selectJob">
+
+            <vaadin-grid-column width="100px" flex="0">
+                <template class="header">
+                    <vaadin-grid-filter aria-label="Job Name" path="job_id" value="[[_filterJobName]]">
+                        <input slot="filter" type="text" hidden>
+                    </vaadin-grid-filter>
+                    <div class="cell">
+                        <span>Job list</span>
+                        <paper-button class="btn btn-secondary addjobbt" on-click="_toggleEditor">
+                            <iron-icon icon="icons:add"></iron-icon>
+                        </paper-button>
+                    </div>
+                </template>
+                <template>
+                    <div class="cell">[[item.job_id]]</div>
+                </template>
+            </vaadin-grid-column>
+        </vaadin-grid>
+
+        <template is="dom-if" if="[[job_error]]">
+            <div style="padding: 85px 15px 0;position: absolute;top: 0;width:100%;height: 100%;background: rgba(227, 227, 227, 0.67);">
+                <div class="alert alert-danger" role="alert" style="width:100%">
+                    <strong>Error !</strong> Can't GET [[jobapi]] , 404 (Not Found)
+                </div>
+            </div>
+        </template>
+
+    </template>
+
+    <script>
+        class joblistElement extends Polymer.Element {
+
+            static get is() { return 'joblist-element'; }
+
+            static get properties() {
+                return {
+
+                };
+            }
+
+            constructor() {
+                super();
+            }
+
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                });
+            }
+            _loadJobsComplete() {
+                this.job_error = false;
+                if (this.jobs) {
+                    this.jobLists = [];
+                    var jobLists = this.jobLists;
+                    var material = this.$.material;
+                    this.jobs.forEach(function (job, index) {
+                        jobLists.push({
+                            "job_id": job
+                        });
+                        if (index == this.jobs.length - 1)
+                            material.clearCache();
+                    }, this);
+
+                    //this.$.material.items = this.jobLists;
+                }
+            }
+
+            _selectJob(ev, item) {
+                console.log(ev);
+            }
+
+        }
+
+        window.customElements.define(joblistElement.is, joblistElement);
+    </script>
+</dom-module>

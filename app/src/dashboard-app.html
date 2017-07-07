@@ -83,7 +83,8 @@
       page-jobs-detail,
       page-storages,
       page-storages-detail,
-      page-setting {
+      page-setting,
+      page-jobs-editor {
         height: 100%;
         box-sizing: border-box;
       }
@@ -93,7 +94,8 @@
       page-jobs-detail,
       page-storages,
       page-storages-detail,
-      page-setting {
+      page-setting,
+      page-jobs-editor {
         padding-bottom: 65px;
         padding-top: 65px;
       }
@@ -131,6 +133,7 @@
         <page-home id="home" name="home"></page-home>
         <page-jobs id="jobs" name="jobs" jobapi="{{jobapi}}"></page-jobs>
         <page-createjob id="jobs-create" name="jobs-create" jobapi="{{jobapi}}"></page-createjob>
+        <page-jobs-editor id="jobs-editor" name="jobs-editor" config="{{config}}"></page-jobs-editor>
         <page-jobs-detail name="jobs-detail" route="{{pageid}}" id="jobs-detail" jobapi="{{jobapi}}"></page-jobs-detail>
         <page-storages id="storages" name="storages" storagesapi="{{storagesapi}}"></page-storages>
         <page-storages-detail id="storages-detail" name="storages-detail" route="{{pageid}}" storagesapi="{{storagesapi}}" storagesobjapi="{{storagesobjapi}}"></page-storages-detail>
@@ -170,6 +173,7 @@
           jobapi: String,
           storagesapi: String,
           storagesobjapi: String,
+          config: Object
         };
       }
 
@@ -205,6 +209,7 @@
         this.jobapi = store.get('api.job_api');
         this.storagesapi = store.get('api.storages_api')
         this.storagesobjapi = store.get('api.storages_obj_api');
+        this.config = store.get();
       }
       _routePageChanged(page) {
         // Polymer 2.0 will call with `undefined` on initialization.
