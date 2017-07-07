@@ -18,13 +18,17 @@
                 height: 100%;
                 border: 0;
                 --vaadin-grid-header-cell: {
-                    font-size: 14px;
+                    font-size: 14px!important;
                     padding-left: 20px;
                     height: initial;
+                    background: #fbfbfb;
                 }
+                ;
                 --vaadin-grid-body-cell: {
-                    padding-left: 20px;
+                    padding: 0;
+                    padding-left: 14px;
                 }
+                ;
 
                 --vaadin-grid-body-row-hover-cell: {
                     cursor: pointer;
@@ -32,17 +36,29 @@
                 ;
             }
 
-            .addjobbt {
+            .job-search-input {
                 position: absolute;
                 top: 17px;
                 right: 10px;
                 --iron-icon-width: 14px;
                 min-width: initial;
                 padding: 0px 5px;
+                height: 32px;
+                width: 200px;
             }
 
             vaadin-grid.material .cell {
                 padding-right: 0!important;
+                height: 100%;
+                padding-top: 15px;
+            }
+
+            paper-fab.createJobFab {
+                --paper-fab-background: var(--paper-light-blue-700);
+                position: absolute;
+                right: 20px;
+                bottom: 20px;
+                z-index: 100;
             }
         </style>
         <!-- Fetch an array of users to be shown in the grid -->
@@ -52,7 +68,7 @@
         <template is="dom-if" if="[[loading]]">
             <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;"></paper-progress>
         </template>
-
+        <paper-fab mini icon="icons:add" title="Create job" class="createJobFab" on-click="_addJobBt"></paper-fab>
         <x-array-data-provider items="{{jobLists}}"></x-array-data-provider>
         <vaadin-grid class="material joblist" id="material" items="[[jobLists]]" on-active-item-changed="_selectJob">
 
@@ -63,9 +79,13 @@
                     </vaadin-grid-filter>
                     <div class="cell">
                         <span>Job list</span>
-                        <paper-button class="btn btn-secondary addjobbt" on-click="_toggleEditor">
-                            <iron-icon icon="icons:add"></iron-icon>
-                        </paper-button>
+                        <div class="input-group addjobbt job-search-input">
+                            <div class="input-group-addon">
+                                <iron-icon icon="icons:search"></iron-icon>
+                            </div>
+                            <input type="text" class="form-control form-control-sm" value="{{_filterJobName::input}}">
+                        </div>
+
                     </div>
                 </template>
                 <template>
@@ -75,7 +95,7 @@
         </vaadin-grid>
 
         <template is="dom-if" if="[[job_error]]">
-            <div style="padding: 85px 15px 0;position: absolute;top: 0;width:100%;height: 100%;background: rgba(227, 227, 227, 0.67);">
+            <div style="padding: 85px 15px 0;position: absolute;top: 0;width:100%;height: 100%;background: rgba(239, 239, 239, 0.79);">
                 <div class="alert alert-danger" role="alert" style="width:100%">
                     <strong>Error !</strong> Can't GET [[jobapi]] , 404 (Not Found)
                 </div>
@@ -91,7 +111,6 @@
 
             static get properties() {
                 return {
-
                 };
             }
 
@@ -125,9 +144,18 @@
             }
 
             _selectJob(ev, item) {
-                console.log(ev);
+                this.dispatchEvent(new CustomEvent('selected-job-list', {
+                    detail: item.value
+                }));
             }
-
+            _ajexerror(ev) {
+                this.jobLists = [];
+                this.$.material.clearCache();
+                this.job_error = true;
+            }
+            _addJobBt(ev){
+                this.dispatchEvent(new CustomEvent('toggle-add-job'));
+            }
         }
 
         window.customElements.define(joblistElement.is, joblistElement);

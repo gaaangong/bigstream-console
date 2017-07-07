@@ -133,7 +133,7 @@
 
             .logo {
                 background: #2f323a;
-                padding: 21px 0 20px;
+                padding: 19px 0 20px;
                 color: azure;
                 text-align: center;
                 position: relative;
@@ -198,7 +198,33 @@
                 margin-bottom: 10px;
             }
         </style>
-        <div iscollapse$="[[iscollapse]]">
+        <!--<style>
+             :host {
+                background-color: #2f323a;
+            }
+
+            simple-menu a {
+                color: rgb(240, 255, 255);
+            }
+
+            simple-menu div.cat-title:before {
+                color: #aca7a7;
+            }
+
+            simple-menu div.cat-title span {
+                color: #f0ffff;
+                background: #2f323a;
+            }
+
+            simple-menu a:hover {
+                color: #6b7b9e;
+            }
+
+            simple-menu a.iron-selected {
+                background: #e0e0e0;
+            }
+        </style>-->
+        <div iscollapse$="[[iscollapse]]" dark$="">
             <div class="logo" on-click="_togglemenu">
                 <span><iron-icon icon="icons:cloud-download"></iron-icon></span>
                 <text>Bigstream</text>
@@ -260,17 +286,19 @@
                             },
                             {
                                 categoryTitle: 'Jobs',
-                                sublist: [{
-                                    url: '/jobs',
-                                    name: 'jobs',
-                                    title: 'Job lists',
-                                    icon: 'icons:work'
-                                }, {
-                                    url: '/jobs/editor',
-                                    name: 'jobs-editor',
-                                    title: 'Job editor',
-                                    icon: 'icons:work'
-                                }
+                                sublist: [
+                                    //     {
+                                    //     url: '/jobs',
+                                    //     name: 'jobs',
+                                    //     title: 'Job lists',
+                                    //     icon: 'icons:work'
+                                    // },
+                                    {
+                                        url: '/jobs/editor',
+                                        name: 'jobs-editor',
+                                        title: 'Job editor',
+                                        icon: 'icons:work'
+                                    }
                                     //  {
                                     //     url: '/jobs/create',
                                     //     name: 'jobs-create',

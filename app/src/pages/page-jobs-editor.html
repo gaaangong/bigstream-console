@@ -1,5 +1,6 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
 <link rel="import" href="/bower_components/vaadin-split-layout/vaadin-split-layout.html">
+<link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
 
 <link rel="import" href="../common/plugin-select.html">
 <link rel="import" href="../common/jobeditor/joblist.html">
@@ -151,26 +152,97 @@
                 min-width: initial;
                 --iron-icon-width: 19px;
             }
+
+            #joblist[file-opening],
+            #code[file-opening] {
+                transition: all 0.3s ease;
+            }
+
+            #code,
+            #joblist {
+                position: relative;
+            }
+
+            #code::before {
+                background: rgba(239, 239, 239, 0.79);
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                content: " ";
+                top: 0;
+                z-index: 111;
+            }
+
+            #code::after {
+                content: "There is no job open";
+                margin: 0;
+                position: absolute;
+                top: 45%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 111;
+                text-align: center;
+                color: #c5c5c5;
+            }
+
+            #code[file-opened]::after,
+            #code[file-opened]::before {
+                display: none;
+            }
+
+            div[main-title] {
+                color: #448ee2;
+            }
+
+            paper-dialog {
+                border-radius: 5px;
+            }
+
+            #addJobDialog .buttons,
+            .form-group {
+                padding: 15px;
+            }
+
+            #addJobDialog h6 {
+                margin-bottom: 10px;
+            }
         </style>
+        <paper-dialog modal id="addJobDialog">
+            <div class="form-group">
+                <h6>Job Name</h6>
+                <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Example input">
+            </div>
+            <div class="buttons">
+                <paper-button class="btn btn-success" dialog-confirm autofocus>create job</paper-button>
+                <paper-button class="btn btn-danger" dialog-confirm autofocus>cancel</paper-button>
+            </div>
+        </paper-dialog>
 
         <app-toolbar>
             <div main-title>
-                [[titlePage]] </div>
-            <paper-button class="btn btn-secondary toggleEditor" on-click="_toggleEditor">
+                [[titlePage]] <span style="color:#414e5d;display: block;font-size: 14px;">[[jsonResult.job_id]]</span></div>
+            <paper-button class="btn btn-outline-success toggleEditor" on-click="_toggleEditor" hidden="[[!fileOpened]]">
+                <iron-icon icon="icons:save"></iron-icon> Save
+            </paper-button>
+            <paper-button class="btn btn-outline-info toggleEditor" on-click="_toggleEditor" hidden$="[[!fileOpened]]">
+                <iron-icon icon="icons:content-copy"></iron-icon> Save as
+            </paper-button>
+            <paper-button class="btn btn-secondary toggleEditor" on-click="_toggleEditor" hidden$="[[!fileOpened]]">
                 <iron-icon icon="icons:menu"></iron-icon>
             </paper-button>
+
         </app-toolbar>
         <div class="container-fluid no-gutters main-page">
             <div class="row no-gutters">
                 <vaadin-split-layout class="split">
-                    <div id="joblist" style="width: 100%;    overflow: hidden;">
-                        <joblist-element jobapi={{config.api.job_api}}></joblist-element>
+                    <div id="joblist" style="width: 80%;    overflow: hidden;" file-opened$="[[fileOpened]]">
+                        <joblist-element id="joblistElement" jobapi={{config.api.job_api}}></joblist-element>
                     </div>
-                    <div id="code" style="min-width:140px;"></div>
+                    <div id="code" style="min-width:140px;width: 20%;" file-opened$="[[fileOpened]]"></div>
                 </vaadin-split-layout>
             </div>
             <div class="editor" opened$="[[toggleEditor]]">
-
+                <div style="background: #5093e1;color: #eef2f7; padding-top: 34px; font-size: 24px;">Overview</div>
                 <!--General detail-->
                 <div class="jsonlabel">
                     <h7>General detail</h7>
@@ -229,13 +301,16 @@
                     jsonResult: {
                         type: Object,
                         value: {
-                            "job_id": "example",
-                            "active": true,
-                            "trigger": {},
-                            "data_in": {},
-                            "data_transform": {},
-                            "data_out": {}
+                            // "job_id": "example",
+                            // "active": true,
+                            // "trigger": {},
+                            // "data_in": {},
+                            // "data_transform": {},
+                            // "data_out": {}
                         }
+                    },
+                    fileOpened: {
+                        value: false
                     }
                 };
             }
@@ -310,6 +385,28 @@
                         this.jsonResult[ev.detail.id] = ev.detail.json;
                         this.jsoneditor.code.set(this.jsonResult);
                     }.bind(this);
+
+                    var _selectedJobList = (ev) => {
+                        $.getJSON(this.config.api.job_api + '/' + ev.detail.job_id, (data) => {
+                            this.fileOpened = true;
+                            $(this.$.code).css('width', '80%');
+                            $(this.$.joblist).css('width', '20%');
+                            $(this.$.code).attr('file-opening', '');
+                            $(this.$.joblist).attr('file-opening', '');
+
+                            this.jsoneditor.code.set(data);
+                            _codeJSONchange();
+
+                            setTimeout(() => {
+                                $(this.$.code).removeAttr('file-opening');
+                                $(this.$.joblist).removeAttr('file-opening');
+                            }, 800)
+
+                        });
+                    }
+
+                    this.$.joblistElement.addEventListener('selected-job-list', _selectedJobList);
+                    this.$.joblistElement.addEventListener('toggle-add-job', this._addJobDialogToggle.bind(this));
                 });
             }
             _getJson() {
@@ -346,6 +443,11 @@
             _toggleEditor() {
                 this.toggleEditor = !this.toggleEditor;
             }
+
+            _addJobDialogToggle() {
+                this.$.addJobDialog.open();
+            }
+
         }
 
         window.customElements.define(PageJobsEditor.is, PageJobsEditor);
