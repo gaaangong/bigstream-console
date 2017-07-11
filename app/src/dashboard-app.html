@@ -83,8 +83,10 @@
       page-jobs-detail,
       page-storages,
       page-storages-detail,
-      page-setting {
+      page-setting,
+      page-jobs-editor {
         height: 100%;
+        width: 100%;
         box-sizing: border-box;
       }
 
@@ -93,7 +95,8 @@
       page-jobs-detail,
       page-storages,
       page-storages-detail,
-      page-setting {
+      page-setting,
+      page-jobs-editor {
         padding-bottom: 65px;
         padding-top: 65px;
       }
@@ -105,9 +108,26 @@
         }
       }
 
-      app-drawer-layout[iscollapse] {
+      .drawerlayout {
+        height: 100%;
+        width: 100%;
+        display: block;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      .drawerlayout .drawer>dashboard-sidemenu {
+        width: var(--app-drawer-width);
+        transition: all 0.2s ease;
+      }
+
+      .drawerlayout[iscollapse] {
         --app-drawer-width: 78px;
-        --app-drawer-layout-content-transition: all 0.2s ease;
+      }
+
+      .d-flex.main {
+        height: 100%;
       }
     </style>
     <config-element></config-element>
@@ -123,21 +143,24 @@
           <div main-title>[[appName]]</div>
         </app-toolbar>
       </app-header>-->
-    <app-drawer-layout id="drawerlayout" iscollapse$="[[iscollapse]]">
-      <app-drawer slot="drawer" opened="{{drawerOpened}}">
-        <dashboard-sidemenu page="{{page}}" id="sidemenu" iscollapse$="[[iscollapse]]"></dashboard-sidemenu>
-      </app-drawer>
-      <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
-        <page-home id="home" name="home"></page-home>
-        <page-jobs id="jobs" name="jobs" jobapi="{{jobapi}}"></page-jobs>
-        <page-createjob id="jobs-create" name="jobs-create" jobapi="{{jobapi}}"></page-createjob>
-        <page-jobs-detail name="jobs-detail" route="{{pageid}}" id="jobs-detail" jobapi="{{jobapi}}"></page-jobs-detail>
-        <page-storages id="storages" name="storages" storagesapi="{{storagesapi}}"></page-storages>
-        <page-storages-detail id="storages-detail" name="storages-detail" route="{{pageid}}" storagesapi="{{storagesapi}}" storagesobjapi="{{storagesobjapi}}"></page-storages-detail>
-        <page-setting name="setting" id="setting"></page-setting>
-        <page-view404 id="view404" name="view404"></page-view404>
-      </iron-pages>
-    </app-drawer-layout>
+    <div class="container-fluid drawerlayout" iscollapse$="[[iscollapse]]">
+      <div class="d-flex main">
+        <div class="drawer">
+          <dashboard-sidemenu page="{{page}}" id="sidemenu" iscollapse$="[[iscollapse]]"></dashboard-sidemenu>
+        </div>
+        <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
+          <page-home id="home" name="home"></page-home>
+          <page-jobs id="jobs" name="jobs" jobapi="{{jobapi}}"></page-jobs>
+          <page-createjob id="jobs-create" name="jobs-create" jobapi="{{jobapi}}"></page-createjob>
+          <page-jobs-editor id="jobs-editor" name="jobs-editor" config="{{config}}"></page-jobs-editor>
+          <page-jobs-detail name="jobs-detail" route="{{pageid}}" id="jobs-detail" jobapi="{{jobapi}}"></page-jobs-detail>
+          <page-storages id="storages" name="storages" storagesapi="{{storagesapi}}"></page-storages>
+          <page-storages-detail id="storages-detail" name="storages-detail" route="{{pageid}}" storagesapi="{{storagesapi}}" storagesobjapi="{{storagesobjapi}}"></page-storages-detail>
+          <page-setting name="setting" id="setting"></page-setting>
+          <page-view404 id="view404" name="view404"></page-view404>
+        </iron-pages>
+      </div>
+    </div>
     <!--</app-header-layout>-->
 
 
@@ -170,6 +193,7 @@
           jobapi: String,
           storagesapi: String,
           storagesobjapi: String,
+          config: Object
         };
       }
 
@@ -205,6 +229,7 @@
         this.jobapi = store.get('api.job_api');
         this.storagesapi = store.get('api.storages_api')
         this.storagesobjapi = store.get('api.storages_obj_api');
+        this.config = store.get();
       }
       _routePageChanged(page) {
         // Polymer 2.0 will call with `undefined` on initialization.
