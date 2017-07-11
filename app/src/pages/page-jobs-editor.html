@@ -1,6 +1,7 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
 <link rel="import" href="/bower_components/vaadin-split-layout/vaadin-split-layout.html">
 <link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/bower_components/iron-a11y-keys/iron-a11y-keys.html">
 
 <link rel="import" href="../common/plugin-select.html">
 <link rel="import" href="../common/jobeditor/joblist.html">
@@ -207,25 +208,68 @@
                 margin-bottom: 10px;
             }
         </style>
+
+        <iron-a11y-keys id="a11y" keys="ctrl+n" target="[[shortcutKeytarget]]" on-keys-pressed="_shortcutKeyHandler"></iron-a11y-keys>
+        <iron-a11y-keys id="a11yCodeEditor" keys="ctrl+s ctrl+shift+s" on-keys-pressed="_shortcutKeyEditorHandler"></iron-a11y-keys>
+
+        <!--START add Job Dialog-->
         <paper-dialog modal id="addJobDialog">
             <div class="form-group">
                 <h6>Job Name</h6>
-                <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Example input">
+                <input type="text" class="form-control" value="{{newJobName::input}}" placeholder="" autofocus>
+                <div class="form-control-feedback" hidden>Can't use space in job name</div>
             </div>
             <div class="buttons">
-                <paper-button class="btn btn-success" dialog-confirm autofocus>create job</paper-button>
-                <paper-button class="btn btn-danger" dialog-confirm autofocus>cancel</paper-button>
+                <paper-button class="btn btn-success" on-click="_createNewJobBt">create job</paper-button>
+                <paper-button class="btn btn-danger" dialog-confirm>cancel</paper-button>
             </div>
         </paper-dialog>
+        <!--end add Job Dialog-->
+
+        <!--START save as Job Dialog-->
+        <paper-dialog modal id="saveasJobDialog">
+            <div class="form-group">
+                <h6>Save as</h6>
+                <input type="text" class="form-control" value="{{newJobName::input}}" placeholder="" autofocus>
+                <div class="form-control-feedback" hidden>Can't use space in job name</div>
+            </div>
+            <div class="buttons">
+                <paper-button class="btn btn-success" on-click="_createNewJobBt">Save</paper-button>
+                <paper-button class="btn btn-danger" dialog-confirm>cancel</paper-button>
+            </div>
+        </paper-dialog>
+        <!--end save as Job Dialog-->
+
+        <!--START delete Confirm Dialog-->
+        <paper-dialog modal id="deleteConfirmDialog">
+            <div class="form-group">
+                <h6>Are you sure to delete job?</h6>
+                <ul>
+                    <dom-repeat id="deleteJobList">
+                        <template>
+                            <li>[[item.job_id]]</li>
+                        </template>
+                    </dom-repeat>
+                </ul>
+            </div>
+            <div class="buttons">
+                <paper-button class="btn btn-success" dialog-confirm on-click="_deleteJobConfirm">Delete</paper-button>
+                <paper-button class="btn btn-danger" dialog-confirm>cancel</paper-button>
+            </div>
+        </paper-dialog>
+        <!--end delete Confirm Dialog-->
 
         <app-toolbar>
             <div main-title>
                 [[titlePage]] <span style="color:#414e5d;display: block;font-size: 14px;">[[jsonResult.job_id]]</span></div>
-            <paper-button class="btn btn-outline-success toggleEditor" on-click="_toggleEditor" hidden="[[!fileOpened]]">
+            <paper-button class="btn btn-outline-success toggleEditor" on-click="_saveJsonEditor" hidden="[[!fileOpened]]">
                 <iron-icon icon="icons:save"></iron-icon> Save
             </paper-button>
-            <paper-button class="btn btn-outline-info toggleEditor" on-click="_toggleEditor" hidden$="[[!fileOpened]]">
+            <paper-button class="btn btn-outline-info toggleEditor" on-click="_saveasJsonEditorDialogToggle" hidden$="[[!fileOpened]]">
                 <iron-icon icon="icons:content-copy"></iron-icon> Save as
+            </paper-button>
+            <paper-button class="btn btn-outline-danger toggleEditor" on-click="_closeJsonEditor" hidden$="[[!fileOpened]]">
+                <iron-icon icon="icons:close"></iron-icon> Close
             </paper-button>
             <paper-button class="btn btn-secondary toggleEditor" on-click="_toggleEditor" hidden$="[[!fileOpened]]">
                 <iron-icon icon="icons:menu"></iron-icon>
@@ -301,16 +345,29 @@
                     jsonResult: {
                         type: Object,
                         value: {
-                            // "job_id": "example",
-                            // "active": true,
-                            // "trigger": {},
-                            // "data_in": {},
-                            // "data_transform": {},
-                            // "data_out": {}
+
                         }
                     },
                     fileOpened: {
                         value: false
+                    },
+                    Job: {
+                        value: () => {
+                            return {
+                                "job_id": "new job",
+                                "active": false,
+                                "trigger": {},
+                                "data_in": {},
+                                "data_transform": {},
+                                "data_out": {}
+                            }
+                        }
+                    },
+                    shortcutKeytarget: {
+                        type: Object,
+                        value: function () {
+                            return document.body;
+                        }
                     }
                 };
             }
@@ -386,8 +443,8 @@
                         this.jsoneditor.code.set(this.jsonResult);
                     }.bind(this);
 
-                    var _selectedJobList = (ev) => {
-                        $.getJSON(this.config.api.job_api + '/' + ev.detail.job_id, (data) => {
+                    this._selectedJobList = (ev) => {
+                        $.getJSON(this.config.api.job_api + '/' + ev.detail.job_id, (data, status, request) => {
                             this.fileOpened = true;
                             $(this.$.code).css('width', '80%');
                             $(this.$.joblist).css('width', '20%');
@@ -405,8 +462,12 @@
                         });
                     }
 
-                    this.$.joblistElement.addEventListener('selected-job-list', _selectedJobList);
+                    this.$.joblistElement.addEventListener('selected-job-list', this._selectedJobList.bind(this));
                     this.$.joblistElement.addEventListener('toggle-add-job', this._addJobDialogToggle.bind(this));
+                    this.$.joblistElement.addEventListener('delete-job', this._deleteJob.bind(this));
+
+                    // Key shortcut
+                    this.$.a11yCodeEditor.target = this.$.code;
                 });
             }
             _getJson() {
@@ -418,12 +479,6 @@
                 if (element.item.textContent === 'Code') this.codeMode = true;
                 else this.codeMode = false;
             }
-
-            _addJob() {
-                this.$.addDataAjax.body = this._getJson();
-                this.$.addDataAjax.generateRequest();
-            }
-
             _addError(e) {
                 console.log(e);
             }
@@ -447,7 +502,93 @@
             _addJobDialogToggle() {
                 this.$.addJobDialog.open();
             }
+            _createNewJobBt(ev) {
+                let dialogTarget = Polymer.dom(ev).rootTarget.parentNode.parentNode;
+                if (this.newJobName.match('^[A-Za-z.0-9]+$')) {
+                    let newJob = JSON.parse(JSON.stringify(this.Job));
+                    newJob.job_id = this.newJobName;
+                    $.post(this.config.api.job_api, newJob, (data) => {
+                        if (data.response === 'OK')
+                            console.log('added new job');
+                        this.$.joblistElement._updateJoblist();
+                        var ev_temp = {};
+                        ev_temp.detail = {};
+                        ev_temp.detail.job_id = newJob.job_id;
+                        this._selectedJobList(ev_temp);
+                    });
+                    this.newJobName = "";
+                    dialogTarget.toggle();
+                    $(dialogTarget.querySelector('input')).removeClass("form-control-danger");
+                    $(dialogTarget.querySelector('.form-group')).removeClass("has-danger");
+                    $(dialogTarget.querySelector('.form-control-feedback')).attr("hidden", '');
+                }
+                else {
+                    $(dialogTarget.querySelector('input')).addClass("form-control-danger");
+                    $(dialogTarget.querySelector('.form-group')).addClass("has-danger");
+                    $(dialogTarget.querySelector('.form-control-feedback')).removeAttr("hidden");
+                }
+            }
+            _saveasJsonEditorDialogToggle() {
+                this.newJobName = `${this.jsonResult.job_id}.copy`;
+                this.$.saveasJobDialog.querySelector('input').select();
+                this.$.saveasJobDialog.open();
+            }
+            _closeJsonEditor() {
+                this.toggleEditor = false;
+                this.fileOpened = false;
+                this.jsonResult = {};
+                $(this.$.code).css('width', '20%');
+                $(this.$.joblist).css('width', '80%');
+                $(this.$.code).attr('file-opening', '');
+                $(this.$.joblist).attr('file-opening', '');
 
+                this.jsoneditor.code.set({});
+
+                setTimeout(() => {
+                    $(this.$.code).removeAttr('file-opening');
+                    $(this.$.joblist).removeAttr('file-opening');
+                }, 800)
+            }
+            _saveJsonEditor() {
+                let json = this._getJson();
+                json.job_id = json.job_id.replace(/\s/g, '');
+                $.post(this.config.api.job_api, this._getJson(), (data, status, request) => {
+                    // if (data.response === 'OK')
+                    //     console.log('added');
+                    this.$.joblistElement._updateJoblist();
+                });
+            }
+            _deleteJob(ev) {
+                this.deleteJobList = ev.detail;
+                this.$.deleteJobList.items = ev.detail;
+                this.$.deleteJobList.render()
+                this.$.deleteConfirmDialog.open();
+            }
+            _deleteJobConfirm() {
+                for (let i = 0; i < this.deleteJobList.length; i += 1) {
+                    $.ajax({
+                        url: `${this.config.api.job_api}/${this.deleteJobList[i].job_id}`,
+                        type: 'DELETE',
+                        success: function (dt, status, request) {
+
+                        }.bind(this)
+                    });
+                    if (i == this.deleteJobList.length - 1)
+                        this.$.joblistElement._updateJoblist();
+                }
+            }
+            _shortcutKeyHandler(ev) {
+                let keydown = ev.detail.keyboardEvent;
+                if (keydown.code === 'KeyN')
+                    this._addJobDialogToggle();
+            }
+            _shortcutKeyEditorHandler(ev) {
+                let keydown = ev.detail.keyboardEvent;
+                if (keydown.code === 'KeyS' && keydown.key == 's')
+                    this._saveJsonEditor();
+                else if (keydown.code === 'KeyS' && keydown.key == 'S')
+                    this._saveasJsonEditorDialogToggle();
+            }
         }
 
         window.customElements.define(PageJobsEditor.is, PageJobsEditor);

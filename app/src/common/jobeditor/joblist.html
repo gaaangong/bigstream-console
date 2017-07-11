@@ -14,6 +14,14 @@
                 height: 100%;
             }
 
+            .joblist .active-status {
+                color: red;
+            }
+
+            .joblist .active-status[active] {
+                color: green;
+            }
+
             .joblist {
                 height: 100%;
                 border: 0;
@@ -59,6 +67,38 @@
                 right: 20px;
                 bottom: 20px;
                 z-index: 100;
+                transition: all 0.3s ease;
+            }
+
+            vaadin-grid.material paper-checkbox {
+                height: 100%;
+                padding-top: 16px;
+                padding-left: 16px;
+            }
+
+            #toolbarSelect {
+                background: rgba(47, 50, 58, 0.94);
+                width: 100%;
+                height: 55px;
+                position: absolute;
+                bottom: -55px;
+                left: 0;
+                z-index: 111;
+                transition: all 0.3s ease;
+            }
+
+            #toolbarSelect paper-button {
+                margin-top: 9px;
+                float: right;
+                margin-right: 10px;
+            }
+
+            #toolbarSelect[have-select] {
+                bottom: 0;
+            }
+
+            .createJobFab[have-select] {
+                bottom: 75px;
             }
         </style>
         <!-- Fetch an array of users to be shown in the grid -->
@@ -68,28 +108,40 @@
         <template is="dom-if" if="[[loading]]">
             <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;"></paper-progress>
         </template>
-        <paper-fab mini icon="icons:add" title="Create job" class="createJobFab" on-click="_addJobBt"></paper-fab>
+        <paper-fab mini icon="icons:add" title="Create job" class="createJobFab" on-click="_addJobBt" have-select$="[[haveSelect]]"></paper-fab>
         <x-array-data-provider items="{{jobLists}}"></x-array-data-provider>
-        <vaadin-grid class="material joblist" id="material" items="[[jobLists]]" on-active-item-changed="_selectJob">
+        <vaadin-grid class="material joblist" id="material" items="[[jobLists]]" on-active-item-changed="_selectJob" on-selected-items-changed="_jobSelectedChanged"
+            selected-items="{{jobSelected}}">
 
-            <vaadin-grid-column width="100px" flex="0">
+            <vaadin-grid-column flex="0">
                 <template class="header">
                     <vaadin-grid-filter aria-label="Job Name" path="job_id" value="[[_filterJobName]]">
                         <input slot="filter" type="text" hidden>
                     </vaadin-grid-filter>
                     <div class="cell">
-                        <span>Job list</span>
+                        <vaadin-grid-sorter path="job_id">
+                            <span>Job list</span> ({{jobs.length}} jobs)
+                        </vaadin-grid-sorter>
+                    </div>
+                </template>
+                <template>
+                    <div class="cell"><span class="active-status" active$="[[item.active]]">☻</span> [[item.job_id]]</div>
+                </template>
+            </vaadin-grid-column>
+            <vaadin-grid-column width="160px" flex-grow="0">
+                <template class="header">
+                    <div class="cell">
                         <div class="input-group addjobbt job-search-input">
                             <div class="input-group-addon">
                                 <iron-icon icon="icons:search"></iron-icon>
                             </div>
                             <input type="text" class="form-control form-control-sm" value="{{_filterJobName::input}}">
                         </div>
-
                     </div>
                 </template>
                 <template>
-                    <div class="cell">[[item.job_id]]</div>
+                    <paper-checkbox aria-label="Select Row" checked="{{selected}}">
+                    </paper-checkbox>
                 </template>
             </vaadin-grid-column>
         </vaadin-grid>
@@ -101,6 +153,9 @@
                 </div>
             </div>
         </template>
+        <div id="toolbarSelect" have-select$="[[haveSelect]]">
+            <paper-button type="button" class="btn btn-danger" on-click="_deleteBt">Delete (selected [[jobSelected.length]] items)</paper-button>
+        </div>
 
     </template>
 
@@ -111,9 +166,16 @@
 
             static get properties() {
                 return {
+                    jobLists: {
+                        value: []
+                    }
                 };
             }
-
+            static get observers() {
+                return [
+                    '_jobListsChanged(jobLists)'
+                ];
+            }
             constructor() {
                 super();
             }
@@ -132,11 +194,14 @@
                     var jobLists = this.jobLists;
                     var material = this.$.material;
                     this.jobs.forEach(function (job, index) {
-                        jobLists.push({
-                            "job_id": job
-                        });
-                        if (index == this.jobs.length - 1)
-                            material.clearCache();
+                        $.getJSON(`${this.jobapi}/${job}`, (data) => {
+                            jobLists.push({
+                                "job_id": job,
+                                "active": (data.active === 'true')
+                            });
+                            if (index == this.jobs.length - 1)
+                                material.clearCache();
+                        }).fail(function (jqXHR, textStatus, errorThrown) { material.clearCache(); });
                     }, this);
 
                     //this.$.material.items = this.jobLists;
@@ -144,17 +209,42 @@
             }
 
             _selectJob(ev, item) {
-                this.dispatchEvent(new CustomEvent('selected-job-list', {
-                    detail: item.value
-                }));
+                if (this.$.material.activeItem != null) {
+                    // this.$.material.selectedItems = this.$.material.activeItem ? [this.$.material.activeItem] : [];
+                    this.dispatchEvent(new CustomEvent('selected-job-list', {
+                        "detail": item.value
+                    }));
+                }
+                this.$.material.activeItem = null;
             }
             _ajexerror(ev) {
                 this.jobLists = [];
                 this.$.material.clearCache();
                 this.job_error = true;
             }
-            _addJobBt(ev){
+            _addJobBt(ev) {
                 this.dispatchEvent(new CustomEvent('toggle-add-job'));
+            }
+            _updateJoblist() {
+                this.$.updateJobsList.generateRequest();
+            }
+            _jobSelectedChanged(ev, item) {
+                if (this.$.material.selectedItems.length >= 1)
+                    this.haveSelect = true;
+                else
+                    this.haveSelect = false;
+            }
+            _deleteBt() {
+                this.dispatchEvent(new CustomEvent('delete-job', {
+                    "detail": this.$.material.selectedItems
+                }));
+            }
+            _jobListsChanged(jobLists) {
+                this.jobSelected = [];
+                if (this.$.material.selectedItems.length >= 1)
+                    this.haveSelect = true;
+                else
+                    this.haveSelect = false;
             }
         }
 
