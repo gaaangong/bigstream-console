@@ -5,6 +5,7 @@
 
 <link rel="import" href="../common/plugin-select.html">
 <link rel="import" href="../common/jobeditor/joblist.html">
+<link rel="import" href="../common/jobeditor/job-tree.html">
 <!--
 `<Name>` is Description
 
@@ -207,6 +208,22 @@
             #addJobDialog h6 {
                 margin-bottom: 10px;
             }
+
+            #jobTreeDialog {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                left: 0;
+                right: 0;
+                overflow: auto;
+            }
+
+            #jobTreeDialog>paper-fab {
+                position: fixed;
+                top: 70px;
+                right: 23px;
+                margin: 0;
+            }
         </style>
 
         <iron-a11y-keys id="a11y" keys="ctrl+n" target="[[shortcutKeytarget]]" on-keys-pressed="_shortcutKeyHandler"></iron-a11y-keys>
@@ -216,11 +233,11 @@
         <paper-dialog modal id="addJobDialog">
             <div class="form-group">
                 <h6>Job Name</h6>
-                <input type="text" class="form-control" value="{{newJobName::input}}" placeholder="" autofocus>
+                <input type="text" class="form-control" value="{{newJobName::input}}" placeholder="" autofocus on-keydown="checkForEnter">
                 <div class="form-control-feedback" hidden>Can't use space in job name</div>
             </div>
             <div class="buttons">
-                <paper-button class="btn btn-success" on-click="_createNewJobBt">create job</paper-button>
+                <paper-button class="btn btn-success submitbt" on-click="_createNewJobBt">create job</paper-button>
                 <paper-button class="btn btn-danger" dialog-confirm>cancel</paper-button>
             </div>
         </paper-dialog>
@@ -230,11 +247,11 @@
         <paper-dialog modal id="saveasJobDialog">
             <div class="form-group">
                 <h6>Save as</h6>
-                <input type="text" class="form-control" value="{{newJobName::input}}" placeholder="" autofocus>
+                <input type="text" class="form-control" value="{{newJobName::input}}" placeholder="" autofocus on-keydown="checkForEnter">
                 <div class="form-control-feedback" hidden>Can't use space in job name</div>
             </div>
             <div class="buttons">
-                <paper-button class="btn btn-success" on-click="_createNewJobBt">Save</paper-button>
+                <paper-button class="btn btn-success submitbt" on-click="_createNewJobBt">Save</paper-button>
                 <paper-button class="btn btn-danger" dialog-confirm>cancel</paper-button>
             </div>
         </paper-dialog>
@@ -259,17 +276,28 @@
         </paper-dialog>
         <!--end delete Confirm Dialog-->
 
+        <!--START jobTree Dialog-->
+        <paper-dialog modal id="jobTreeDialog">
+            <job-tree id="jobTree" config="[[config]]" job-id="[[jsonResult.job_id]]"></job-tree>
+            <paper-fab icon="close" title="close" dialog-confirm></paper-fab>
+        </paper-dialog>
+        <!--end jobTree Dialog-->
+
         <app-toolbar>
             <div main-title>
                 [[titlePage]] <span style="color:#414e5d;display: block;font-size: 14px;">[[jsonResult.job_id]]</span></div>
-            <paper-button class="btn btn-outline-success toggleEditor" on-click="_saveJsonEditor" hidden="[[!fileOpened]]">
+            <paper-button class="btn btn-outline-success toggleEditor" on-click="_saveJsonEditor" hidden="[[!fileOpened]]" title="Save [[jsonResult.job_id]] (ctrl+s)">
                 <iron-icon icon="icons:save"></iron-icon> Save
             </paper-button>
-            <paper-button class="btn btn-outline-info toggleEditor" on-click="_saveasJsonEditorDialogToggle" hidden$="[[!fileOpened]]">
+            <paper-button class="btn btn-outline-info toggleEditor" on-click="_saveasJsonEditorDialogToggle" hidden$="[[!fileOpened]]"
+                title="Save as (ctrl+shift+s)">
                 <iron-icon icon="icons:content-copy"></iron-icon> Save as
             </paper-button>
             <paper-button class="btn btn-outline-danger toggleEditor" on-click="_closeJsonEditor" hidden$="[[!fileOpened]]">
                 <iron-icon icon="icons:close"></iron-icon> Close
+            </paper-button>
+            <paper-button class="btn btn-outline-warning toggleEditor" on-click="_jobTreeDialogToggle" hidden$="[[!fileOpened]]">
+                <iron-icon icon="hardware:device-hub"></iron-icon> Tree
             </paper-button>
             <paper-button class="btn btn-secondary toggleEditor" on-click="_toggleEditor" hidden$="[[!fileOpened]]">
                 <iron-icon icon="icons:menu"></iron-icon>
@@ -316,7 +344,7 @@
                 <div class="jsonlabel">
                     <h7>Data out</h7>
                 </div>
-                <plugin-select id="data_out" maxplugin="1"></plugin-select>
+                <plugin-select id="data_out" maxplugin="1" config="[[config]]"></plugin-select>
             </div>
         </div>
 
@@ -344,9 +372,7 @@
                     },
                     jsonResult: {
                         type: Object,
-                        value: {
-
-                        }
+                        value: {}
                     },
                     fileOpened: {
                         value: false
@@ -406,10 +432,23 @@
                             modes: ['code', 'form', 'text', 'tree', 'view'],
                             onChange: _codeJSONchange
                         };
-
+                        var jsonDetailSchema = {
+                            "title": "Json Detail",
+                            "type": "object",
+                            "properties": {
+                                "job_id": {
+                                    "type": "string"
+                                },
+                                "active": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "required": ["job_id", "active"]
+                        };
                         var jsonDetailoptions = {
                             mode: 'tree',
-                            onChange: _jsonDetailChange
+                            onChange: _jsonDetailChange,
+                            schema: jsonDetailSchema
                         };
 
                         jsoneditor.jsonDetail = new JSONEditor(this.$.jsonDetail, jsonDetailoptions, detail);
@@ -422,7 +461,7 @@
                         var newjson = this.jsoneditor.code.get();
                         var detail = {
                             "job_id": newjson.job_id,
-                            "active": newjson.active
+                            "active": (newjson.active === 'true' || newjson.active == true)
                         };
                         if (newjson.trigger != this.$.trigger.get()) this.$.trigger.set(newjson.trigger);
                         if (newjson.data_in != this.$.data_in.get()) this.$.data_in.set(newjson.data_in);
@@ -444,7 +483,7 @@
                     }.bind(this);
 
                     this._selectedJobList = (ev) => {
-                        $.getJSON(this.config.api.job_api + '/' + ev.detail.job_id, (data, status, request) => {
+                        $.getJSON(this.config.api.job_api + '/' + encodeURIComponent(ev.detail.job_id), (data, status, request) => {
                             this.fileOpened = true;
                             $(this.$.code).css('width', '80%');
                             $(this.$.joblist).css('width', '20%');
@@ -506,6 +545,9 @@
                 let dialogTarget = Polymer.dom(ev).rootTarget.parentNode.parentNode;
                 if (this.newJobName.match('^[A-Za-z.0-9]+$')) {
                     let newJob = JSON.parse(JSON.stringify(this.Job));
+                    if (this.$.saveasJobDialog.opened) {
+                        newJob = this.jsoneditor.code.get();
+                    }
                     newJob.job_id = this.newJobName;
                     $.post(this.config.api.job_api, newJob, (data) => {
                         if (data.response === 'OK')
@@ -567,7 +609,7 @@
             _deleteJobConfirm() {
                 for (let i = 0; i < this.deleteJobList.length; i += 1) {
                     $.ajax({
-                        url: `${this.config.api.job_api}/${this.deleteJobList[i].job_id}`,
+                        url: `${this.config.api.job_api}/${encodeURIComponent(this.deleteJobList[i].job_id)}`,
                         type: 'DELETE',
                         success: function (dt, status, request) {
 
@@ -588,6 +630,18 @@
                     this._saveJsonEditor();
                 else if (keydown.code === 'KeyS' && keydown.key == 'S')
                     this._saveasJsonEditorDialogToggle();
+            }
+            checkForEnter(e) {
+                // check if 'enter' was pressed
+                if (e.keyCode === 13) {
+                    Polymer.dom(e).rootTarget.parentNode.parentNode.querySelector('.submitbt').click();
+                }
+            }
+            _jobTreeDialogToggle() {
+                this.$.jobTreeDialog.open();
+                setTimeout(function () {
+                    this.$.jobTree._openning();
+                }.bind(this), 50);
             }
         }
 

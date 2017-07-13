@@ -194,10 +194,10 @@
                     var jobLists = this.jobLists;
                     var material = this.$.material;
                     this.jobs.forEach(function (job, index) {
-                        $.getJSON(`${this.jobapi}/${job}`, (data) => {
+                        $.getJSON(`${this.jobapi}/${encodeURIComponent(job)}`, (data) => {
                             jobLists.push({
                                 "job_id": job,
-                                "active": (data.active === 'true')
+                                "active": (data.active === 'true' || data.active == true)
                             });
                             if (index == this.jobs.length - 1)
                                 material.clearCache();

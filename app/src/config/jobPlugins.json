@@ -1,74 +1,108 @@
 {
-    "trigger": [{
-        "type": "cron",
-        "value": {
+    "trigger": [
+        {
             "type": "cron",
-            "param": {
-                "cmd": "* * * * * *"
+            "value": {
+                "type": "cron",
+                "param": {
+                    "cmd": "* * * * * *"
+                }
             }
-        }
-    }, {
-        "type": "http",
-        "value": {
+        },
+        {
             "type": "http",
-            "param": {
-                "appkey": "appkeyName",
-                "method": "get"
+            "value": {
+                "type": "http",
+                "param": {
+                    "appkey": "appkeyName",
+                    "method": "get"
+                }
+            }
+        },
+        {
+            "type": "custom",
+            "value": {
+                "type": "custom",
+                "param": {}
             }
         }
-    }],
-    "data_in": [{
-        "type": "example",
-        "value": {
+    ],
+    "data_in": [
+        {
             "type": "example",
-            "param": {}
-        }
-    }, {
-        "type": "input",
-        "value": {
+            "value": {
+                "type": "example",
+                "param": {}
+            }
+        },
+        {
             "type": "input",
-            "param": {
-                "object": "httpdata"
+            "value": {
+                "type": "input",
+                "param": {
+                    "object": "httpdata"
+                }
             }
-        }
-    }, {
-        "type": "http-request",
-        "value": {
+        },
+        {
             "type": "http-request",
-            "param": {
-                "url": "http://203.155.220.231/Radar/pics/zfiltered.jpg",
-                "encoding": "binary"
+            "value": {
+                "type": "http-request",
+                "param": {
+                    "url": "http://203.155.220.231/Radar/pics/zfiltered.jpg",
+                    "encoding": "binary"
+                }
+            }
+        },
+        {
+            "type": "custom",
+            "value": {
+                "type": "custom",
+                "param": {}
             }
         }
-    }],
-    "data_transform": [{
-        "type": "noop",
-        "value": {
+    ],
+    "data_transform": [
+        {
             "type": "noop",
-            "param": {}
-        }
-    }, {
-        "type": "jsmap",
-        "value": {
+            "value": {
+                "type": "noop",
+                "param": {}
+            }
+        },
+        {
             "type": "jsmap",
-            "param": {
-                "script": "data=(src.data[0].data.light>50)?'open':'close';meta={'ts':src.data[0].data.ts}"
+            "value": {
+                "type": "jsmap",
+                "param": {
+                    "script": "data=(src.data[0].data.light>50)?'open':'close';meta={'ts':src.data[0].data.ts}"
+                }
+            }
+        },
+        {
+            "type": "filter-duplicate",
+            "value": {
+                "type": "filter-duplicate",
+                "param": {}
+            }
+        },
+        {
+            "type": "custom",
+            "value": {
+                "type": "custom",
+                "param": {}
             }
         }
-    }, {
-        "type": "filter-duplicate",
-        "value": {
-            "type": "filter-duplicate",
-            "param": {}
-        }
-    }],
-    "data_out": [{
+    ],
+    "data_out": [
+        {
             "type": "console",
             "value": {
                 "type": "console",
                 "param": {}
             }
-        }, {
+        },
+        {
             "type": "storage",
             "value": {
                 "type": "storage",
@@ -86,6 +120,34 @@
                         "linemsg-lsr"
                     ]
                 }
+            },
+            "extended": true,
+            "editor_tag": "plugin-call"
+        },
+        {
+            "type": "line-notify",
+            "value": {
+                "type": "line-notify",
+                "param": {
+                    "token": "ks3CD8b8yMSbpabBEgEPOoF0kmVqzFiaNjmKcLsN3NT",
+                    "message": "${data}"
+                }
+            }
+        },
+        {
+            "type": "dweet",
+            "value": {
+                "type": "dweet",
+                "param": {
+                    "thing": "igrid-weather-kl"
+                }
+            }
+        },
+        {
+            "type": "custom",
+            "value": {
+                "type": "custom",
+                "param": {}
             }
         }
     ]

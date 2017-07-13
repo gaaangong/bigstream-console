@@ -6,6 +6,7 @@
 <script src="/bower_components/Sortable/Sortable.min.js"></script>
 <!--job plugins-->
 <link rel="import" href="../common/job-plugins/jsoneditor.html">
+<link rel="import" href="../common/job-plugins/plugin-call.html">
 
 <!--
 `<pluginSelect>` is Description
@@ -178,8 +179,12 @@
                         }.bind(this),
                         onEnd: function (evt, originalEvent) {
                             this._jsonChanged()
-                        }.bind(this)
+                        }.bind(this),
+                        draggable:'li.plugin-item',
+                        handle: '.drag'
                     });
+                    // if (this.maxplugin == 1)
+                    //     this.sortable.option("disabled", true);
 
                 });
             }
@@ -189,33 +194,58 @@
             }
 
             _clickAddPlugins(ev, element) {
-                this._addPlugins(this.plugins[element.item.index].value);
+                this._addPlugins(this.plugins[element.item.index]);
             }
 
-            _addPlugins(json) {
+            _addPlugins(plugin) {
+                var json = plugin.value;
+
                 if (json && json.type) {
                     var el = document.createElement('li');
-                    el.innerHTML =
-                        '<iron-icon icon="editor:drag-handle" class="drag"></iron-icon><paper-button class="toggle" toggles>' +
+                    el.setAttribute("class", "plugin-item");
+                    var innerHTML = '<iron-icon icon="editor:drag-handle" class="drag"></iron-icon><paper-button class="toggle" toggles>' +
                         json.type +
-                        '<iron-icon icon="icons:arrow-drop-down" class="down"></iron-icon><iron-icon icon="icons:arrow-drop-up" class="up"></iron-icon></paper-button><iron-collapse id="collapse">' +
-                        '<json-editor id="plugin_detail"></json-editor>' +
-                        '</iron-collapse><i class="js-remove">✖</i>';
+                        '<iron-icon icon="icons:arrow-drop-down" class="down"></iron-icon><iron-icon icon="icons:arrow-drop-up" class="up"></iron-icon></paper-button><iron-collapse id="collapse">';
 
-                    el.childNodes[1].onclick = function (ev) {
-                        var target = Polymer.dom(ev).rootTarget;
-                        target.nextSibling.toggle();
-                    };
-                    // if (!this.pluginsReg) this.pluginsReg = [];
-                    el.childNodes[2].firstChild.json = JSON.parse(JSON.stringify(json));
-                    el.childNodes[2].firstChild.editting = this.editting;
-                    // addEventListener when json in each plugin changed
-                    el.childNodes[2].firstChild.addEventListener('editorchange', function (ev) {
-                        this._jsonChanged()
-                    }.bind(this));
+                    if (plugin.extended) { // Plugins that have specific editor
+                        el.innerHTML = `${innerHTML}<${plugin.editor_tag} class="plugin-editor"></${plugin.editor_tag}></iron-collapse><i class="js-remove">✖</i>`;
 
-                    this.sortable.el.appendChild(el);
+                        el.childNodes[1].onclick = function (ev) {
+                            var target = Polymer.dom(ev).rootTarget;
+                            target.nextSibling.toggle();
+                        };
 
+                        Polymer.dom(el).querySelector(plugin.editor_tag)
+                            .addEventListener(`${plugin.editor_tag}-editor-change`, function (ev) {
+                                this._jsonChanged()
+                            }.bind(this));
+
+                        Polymer.dom(el).querySelector(plugin.editor_tag)
+                            .json = json;
+
+                        Polymer.dom(el).querySelector(plugin.editor_tag).config = this.config;
+                        
+                        this.sortable.el.appendChild(el);
+                    } else {    // General plugins is use json-editor
+                        el.innerHTML = innerHTML + '<json-editor class="plugin-editor"></json-editor>' +
+                            '</iron-collapse><i class="js-remove">✖</i>';
+
+                        el.childNodes[1].onclick = function (ev) {
+                            var target = Polymer.dom(ev).rootTarget;
+                            target.nextSibling.toggle();
+                        };
+
+                        el.childNodes[2].firstChild.json = JSON.parse(JSON.stringify(json));
+                        el.childNodes[2].firstChild.editting = this.editting;
+
+                        // addEventListener when json in each plugin changed
+                        el.childNodes[2].firstChild.addEventListener('editorchange', function (ev) {
+                            this._jsonChanged()
+                        }.bind(this));
+
+                        this.sortable.el.appendChild(el);
+
+                    }
                     // count num of plugins that register in this 
                     this.numOfPlugin += 1;
                     this.isFull = (this.maxplugin >= this.numOfPlugin);
@@ -226,7 +256,7 @@
 
             // when plugin added/removed or text changed or list moved
             _jsonChanged() {
-                var editorlist = this.sortable.el.querySelectorAll('#plugin_detail');
+                var editorlist = this.sortable.el.querySelectorAll('.plugin-editor');
                 var newjson;
                 if (editorlist.length > 1) {
                     newjson = [];
@@ -258,13 +288,15 @@
                 this.deleteAll();
                 if (newjson && (this.editting = true)) {
                     if (newjson.length) newjson.forEach(function (element, index) {
-                        this._addPlugins(element);
+                        let elConvert = { value: element };
+                        this._addPlugins(elConvert);
                         if (newjson.length - 1 == index) {
                             this.editting = false;
                         }
                     }, this);
                     else {
-                        this._addPlugins(newjson);
+                        let elConvert = { value: newjson };
+                        this._addPlugins(elConvert);
                         this.editting = false;
                     }
                 }

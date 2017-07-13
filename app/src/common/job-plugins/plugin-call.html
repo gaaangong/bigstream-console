@@ -1,0 +1,187 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<script src="/bower_components/Sortable/Sortable.min.js"></script>
+<link rel="import" href="/bower_components/vaadin-combo-box/vaadin-combo-box.html">
+<!--
+`<plugin>` is Description
+
+@element plugin
+-->
+<dom-module id="plugin-call">
+    <template>
+        <style include="bootstrap"></style>
+        <style include="shared-styles">
+             :host {
+                display: block;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+
+            paper-button.add {
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                font-size: 15px;
+            }
+
+            paper-button.add {
+                padding: 5px;
+                color: var(--google-grey-500);
+                text-transform: none;
+                border: 1px solid var(--google-grey-300);
+            }
+
+            ul#job-items {
+                margin: 0;
+                list-style: none;
+                padding: 25px;
+            }
+
+            ul#job-items li {
+                padding: 11px 18px;
+                border: 1px solid var(--google-grey-300);
+                margin-bottom: 9px;
+                position: relative;
+            }
+
+            .job-remove {
+                cursor: pointer;
+                position: absolute;
+                right: 16px;
+                color: #cecece;
+                font-size: 11px;
+            }
+
+            paper-dialog.size-position {
+                position: fixed;
+                top: 100%;
+                right: 0;
+                width: 399px;
+                height: 100%;
+                overflow: auto;
+                box-shadow: 0px -8px 11px -2px rgba(0, 0, 0, 0.16);
+                margin: 0;
+                transition: all 0.2s ease;
+                padding: 0;
+                text-align: initial;
+                border-top-right-radius: 10px;
+                border-top-left-radius: 10px;
+                --iron-icon-fill-color: #edeff5;
+            }
+
+            paper-dialog.size-position paper-button {
+                position: absolute;
+                top: 15px;
+                right: 5px;
+                margin: 0;
+            }
+        </style>
+        <iron-ajax loading="{{loading}}" url="[[config.api.job_api]]" handle-as="json" last-response="{{jobs}}" on-error="_ajexerror"
+            id="updateJobsList" on-response="_loadJobsComplete"></iron-ajax>
+
+        <paper-button class="add" on-click="_modalToggle">Manage</paper-button>
+
+        <paper-dialog id="modal" class="size-position" modal>
+            <h5 style="padding-bottom: 20px;background: var(--paper-blue-grey-600);color: #edeff5;padding-top: 16px;">Data out : Call</h5>
+            <paper-button on-click="_closeModal">
+                <iron-icon icon="icons:close"></iron-icon>
+            </paper-button>
+            <!-- <p>Select job to add in list</p> -->
+            <vaadin-combo-box id="joblist" label="Job" on-selected-item-changed="_addJob" autofocus></vaadin-combo-box>
+
+            <ul id="job-items"></ul>
+            <div class="buttons">
+
+            </div>
+        </paper-dialog>
+
+    </template>
+
+    <script>
+        class pluginCall extends Polymer.Element {
+
+            static get is() { return 'plugin-call'; }
+
+            static get properties() {
+                return {
+                    pluginCallEditorChange: {
+                        value: () => {
+                            return new CustomEvent('plugin-call-editor-change', {})
+                        }
+                    },
+                    jobLists: {
+                        value: []
+                    }
+                };
+            }
+
+            constructor() {
+                super();
+            }
+
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+                    this._jobChanged();
+                });
+            }
+
+            get() {
+                return this.json;
+            }
+
+            _modalToggle() {
+                this.$.modal.open();
+                this.$.updateJobsList.generateRequest();
+                setTimeout(function () {
+                    $(this.$.modal).css('top', '130px');
+                    $(this.$.modal).css('max-height', 'none');
+                }.bind(this), 50)
+            }
+
+            _ajexerror(ev) {
+                this.jobLists = [];
+                this.$.material.clearCache();
+                this.job_error = true;
+            }
+
+            _loadJobsComplete() {
+                this.job_error = false;
+                if (this.jobs) {
+                    this.$.joblist.items = this.jobs;
+                }
+            }
+
+            _addJob(ev, item) {
+                var el = document.createElement('li');
+                el.innerHTML = `<span>${item.value}</span><i class="job-remove">✖</i>`;
+                $(el).children("i")[0].addEventListener('click', (evt) => {
+                    var el = Polymer.dom(evt).rootTarget;
+                    el.parentNode.parentNode.removeChild(el.parentNode);
+                    this._jobChanged();
+                })
+                if (item.value)
+                    this.$['job-items'].appendChild(el);
+                this.$.joblist.selectedItem = null;
+                this._jobChanged();
+            }
+            _jobChanged() {
+                this.json.param.to = [];
+                Polymer.dom(this.$['job-items']).querySelectorAll('li span').forEach(function (element) {
+                    this.json.param.to.push(element.textContent);
+                }, this);
+                this.dispatchEvent(this.pluginCallEditorChange);
+
+            }
+            _closeModal(ev) {
+                $(this.$.modal).css('top', '100%');
+                $(this.$.modal).css('max-height', 'none');
+                setTimeout(function () {
+                    this.$.modal.toggle();
+                }.bind(this), 100)
+            }
+        }
+
+        window.customElements.define(pluginCall.is, pluginCall);
+    </script>
+</dom-module>
