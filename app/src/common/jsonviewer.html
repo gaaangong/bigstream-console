@@ -12,9 +12,6 @@
         <style>
              :host {
                 display: block;
-                background: #fcfcfc;
-                -webkit-box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
-                box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
             }
 
             div#jsoneditor {
@@ -31,7 +28,7 @@
 
             div.jsoneditor-outer {
                 margin: 0!important;
-                padding: 10px 0 10px 56px!important;
+                padding: 15px!important;
             }
         </style>
 
@@ -49,7 +46,9 @@
             static get properties() {
                 return {
                     jsoneditor: Object,
-                    json: JSON
+                    json: {
+                        observer : '_jsonChanged'
+                    }
                 };
             }
 
@@ -72,6 +71,10 @@
                     // this.jsoneditor.expandAll();
 
                 });
+            }
+
+            _jsonChanged(json){
+                this.jsoneditor.set(json);
             }
 
         }

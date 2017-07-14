@@ -10,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
 <link rel="import" href="/bower_components/vaadin-grid/all-imports.html">
+<link rel="import" href="/bower_components/vaadin-split-layout/vaadin-split-layout.html">
 
 <link rel="import" href="/bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="/bower_components/paper-tabs/paper-tabs.html">
@@ -45,6 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             vaadin-grid.material {
                 height: 100%;
                 padding-bottom: 130px;
+                border-top: 0;
                 --vaadin-grid-body-cell: {
                     display: block;
                     cursor: pointer;
@@ -73,7 +75,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 border-left: 0;
             }
 
-            
+
 
             paper-fab.createJobFab {
                 --paper-fab-background: var(--paper-light-blue-700);
@@ -124,6 +126,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             .details {
                 overflow: auto;
+                height: 100%;
+                background: #fdfdfd;
+                -webkit-box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
+                box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
+            }
+
+            jsonviewer-element {
+                height: 100%;
             }
 
             .datalist {
@@ -197,6 +207,47 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 height: 100%;
                 overflow: hidden;
             }
+
+            div.split {
+                height: 100%;
+                background: #fff;
+                display: flex;
+                overflow: hidden;
+                border-top: 1px solid #e0e0e0;
+            }
+
+            div#objLists {
+                width: 100%;
+            }
+
+            div#objDetail {
+                width: 0px;
+                border-left: 1px solid #e0e0e0;
+                transition: all 0.4s ease;
+                visibility: hidden;
+                opacity: 0;
+                color: #414e5d;
+            }
+
+            div#objDetail[opened] {
+                width: 350px;
+                max-width: 350px;
+                visibility: visible;
+                opacity: 1;
+            }
+
+            .obj-title {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                padding: 45px 20px 5px;
+                background: #f6f7fa;
+                border-bottom: 1px solid var(--google-grey-300);
+            }
+
+            .obj-title h6 span {
+                color: #458ee2;
+                margin-right: 5px;
+            }
         </style>
         <!-- Fetch an array of users to be shown in the grid -->
         <app-route route="[[route]]" pattern="/:storageid" data="{{routeData}}"></app-route>
@@ -261,31 +312,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <template is="dom-if" if="[[loading]]">
                     <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;"></paper-progress>
                 </template>
-                <vaadin-grid class="material" items="{{items}}" on-active-item-changed="_onActiveItemChanged" id="grid" page-size="[[pageSize]]">
+                <div class="split">
 
-                    <template class="row-details">
-                        <div class="details">
-                            <jsonviewer-element json="[[item]]"></jsonviewer-element>
+                    <!-- START OBJECT LISTS -->
+                    <div id="objLists">
+                        <vaadin-grid class="material" items="{{items}}" on-active-item-changed="_onActiveItemChanged" id="grid" page-size="[[pageSize]]"
+                            active-item="{{activeItem}}">
+
+                            <vaadin-grid-column width="50px" flex-grow="0">
+                                <template class="header">#</template>
+                                <template>[[index]]</template>
+                            </vaadin-grid-column>
+
+                            <vaadin-grid-column>
+                                <template class="header">List</template>
+                                <template><span class="mini-icon">{ }</span> id : [[item._id]]</template>
+                            </vaadin-grid-column>
+
+                            <vaadin-grid-column>
+                                <template class="header">Create at</template>
+                                <template>[[_timestampDate(item.meta._ts)]]</template>
+                            </vaadin-grid-column>
+
+
+                        </vaadin-grid>
+                    </div>
+                    <!-- END OBJECT LISTS -->
+
+                    <!-- START OBJECT DETAIL -->
+                    <div id="objDetail">
+                        <paper-button style="border-radius: 30px;min-width: 50px;position: absolute;right: 0" on-click="_closeObjDetail">
+                            <iron-icon icon="icons:close" style="color: var(--google-grey-500);"></iron-icon>
+                        </paper-button>
+                        <div class="obj-title">
+                            <small>[[activeItem.data.object_type]] [[activeItem.data.data_type]]</small>
+                            <h6><span>ID</span>[[activeItem._id]]</h6>
                         </div>
-                    </template>
+                        <div class="details">
+                            <!-- <paper-button>view file</paper-button> -->
+                            <jsonviewer-element id="jsonviewer"></jsonviewer-element>
+                        </div>
+                    </div>
+                    <!-- END OBJECT DETAIL -->
 
-                    <vaadin-grid-column width="50px" flex-grow="0">
-                        <template class="header">#</template>
-                        <template>[[index]]</template>
-                    </vaadin-grid-column>
-
-                    <vaadin-grid-column>
-                        <template class="header">List</template>
-                        <template><span class="mini-icon">{ }</span> id : [[item._id]]</template>
-                    </vaadin-grid-column>
-
-                    <vaadin-grid-column>
-                        <template class="header">Create at</template>
-                        <template>[[_timestampDate(item.meta._ts)]]</template>
-                    </vaadin-grid-column>
-
-
-                </vaadin-grid>
+                </div>
             </paper-card>
         </div>
 
@@ -325,7 +395,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         value: 0
                     },
                     mainurl: String,
-                    urlquery: String
+                    urlquery: String,
+                    activeItem: {
+                        observer: '_activeItemChanged'
+                    }
                 };
             }
             static get observers() {
@@ -365,9 +438,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     this.stats = data;
                     // console.log(data);
                 }.bind(this))
-
+                this._closeObjDetail();
                 this.lastfilter = this.fromfilter = this.objidfilter = this.limitfilter = "";
 
+            }
+
+            _activeItemChanged(item) {
+                this.$.grid.selectedItems = item ? [item] : [];
+                if (item) {
+                    this.$.jsonviewer.json = item;
+                    $(this.$.objDetail).attr('opened', '');
+                }
+                else
+                    this._closeObjDetail();
             }
 
             _isSelected(page, item) {
@@ -425,6 +508,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     this.items = [data];
                     this.loading = false;
                 })
+            }
+
+            // Object Detail panel
+            _closeObjDetail(ev) {
+                $(this.$.objDetail).removeAttr('opened');
             }
         }
 
