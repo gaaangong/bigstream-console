@@ -29,6 +29,7 @@
 
 <link rel="import" href="./common/dashboard-sidemenu.html">
 
+
 <link rel="import" href="./bootstrap.html">
 <link rel="import" href="./shared-styles.html">
 
@@ -103,6 +104,20 @@
         padding-top: 65px;
       }
 
+      .iron-selected {
+        animation-duration: 0.3s;
+        animation-name: fade;
+        animation-timing-function: cubic-bezier(.71, .55, .62, 1.57);
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
 
       @media all and (min-width: 641px) {
         .toggle-drawer {

@@ -180,7 +180,7 @@
                         onEnd: function (evt, originalEvent) {
                             this._jsonChanged()
                         }.bind(this),
-                        draggable:'li.plugin-item',
+                        draggable: 'li.plugin-item',
                         handle: '.drag'
                     });
                     // if (this.maxplugin == 1)
@@ -191,6 +191,14 @@
 
             _pluginsChanged(plugins) {
                 this.$.pulginsList.items = plugins;
+                var pluginObjConvert = () => {
+                    let temp = {};
+                    plugins.forEach((item) => {
+                        temp[item.type] = item;
+                    }, this)
+                    return temp;
+                }
+                this.pluginObj = pluginObjConvert();
             }
 
             _clickAddPlugins(ev, element) {
@@ -224,7 +232,7 @@
                             .json = json;
 
                         Polymer.dom(el).querySelector(plugin.editor_tag).config = this.config;
-                        
+
                         this.sortable.el.appendChild(el);
                     } else {    // General plugins is use json-editor
                         el.innerHTML = innerHTML + '<json-editor class="plugin-editor"></json-editor>' +
@@ -288,14 +296,20 @@
                 this.deleteAll();
                 if (newjson && (this.editting = true)) {
                     if (newjson.length) newjson.forEach(function (element, index) {
-                        let elConvert = { value: element };
+                        let elConvert = {};
+                        if (this.pluginObj[element.type])
+                            elConvert = JSON.parse(JSON.stringify(this.pluginObj[element.type]));
+                        elConvert.value = element;
                         this._addPlugins(elConvert);
                         if (newjson.length - 1 == index) {
                             this.editting = false;
                         }
                     }, this);
                     else {
-                        let elConvert = { value: newjson };
+                        let elConvert = {};
+                        if (this.pluginObj[newjson.type])
+                            elConvert = JSON.parse(JSON.stringify(this.pluginObj[newjson.type]));
+                        elConvert.value = newjson;
                         this._addPlugins(elConvert);
                         this.editting = false;
                     }

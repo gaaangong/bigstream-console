@@ -122,6 +122,11 @@
                 super.ready();
 
                 Polymer.RenderStatus.afterNextRender(this, function () {
+                    this.json.param.to.forEach((item) => {
+                        let temp = {};
+                        this._addJob(temp, { value: item });
+                    }, this);
+
                     this._jobChanged();
                 });
             }

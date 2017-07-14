@@ -277,10 +277,10 @@
         <!--end delete Confirm Dialog-->
 
         <!--START jobTree Dialog-->
-        <paper-dialog modal id="jobTreeDialog">
+        <!-- <paper-dialog modal id="jobTreeDialog">
             <job-tree id="jobTree" config="[[config]]" job-id="[[jsonResult.job_id]]"></job-tree>
             <paper-fab icon="close" title="close" dialog-confirm></paper-fab>
-        </paper-dialog>
+        </paper-dialog> -->
         <!--end jobTree Dialog-->
 
         <app-toolbar>
@@ -296,9 +296,9 @@
             <paper-button class="btn btn-outline-danger toggleEditor" on-click="_closeJsonEditor" hidden$="[[!fileOpened]]">
                 <iron-icon icon="icons:close"></iron-icon> Close
             </paper-button>
-            <paper-button class="btn btn-outline-warning toggleEditor" on-click="_jobTreeDialogToggle" hidden$="[[!fileOpened]]">
+            <!-- <paper-button class="btn btn-outline-warning toggleEditor" on-click="_jobTreeDialogToggle" hidden$="[[!fileOpened]]">
                 <iron-icon icon="hardware:device-hub"></iron-icon> Tree
-            </paper-button>
+            </paper-button> -->
             <paper-button class="btn btn-secondary toggleEditor" on-click="_toggleEditor" hidden$="[[!fileOpened]]">
                 <iron-icon icon="icons:menu"></iron-icon>
             </paper-button>
@@ -637,12 +637,12 @@
                     Polymer.dom(e).rootTarget.parentNode.parentNode.querySelector('.submitbt').click();
                 }
             }
-            _jobTreeDialogToggle() {
-                this.$.jobTreeDialog.open();
-                setTimeout(function () {
-                    this.$.jobTree._openning();
-                }.bind(this), 50);
-            }
+            // _jobTreeDialogToggle() {
+            //     this.$.jobTreeDialog.open();
+            //     setTimeout(function () {
+            //         this.$.jobTree._openning();
+            //     }.bind(this), 50);
+            // }
         }
 
         window.customElements.define(PageJobsEditor.is, PageJobsEditor);

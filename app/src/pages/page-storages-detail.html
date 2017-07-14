@@ -35,6 +35,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 --app-grid-expandible-item-columns: 2;
                 --app-primary-color: #2f323a;
                 --app-secondary-color: #5093e1;
+                overflow: hidden!important;
             }
 
             div[main-title] {
@@ -340,15 +341,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             }
             _loadStorageComplete(ev) { }
+
             _onActiveItemChanged(e) {
-                if (e.detail.value) {
-                    $.getJSON(this.storagesobjapi + '/' + this.routeData.storageid + '.' + e.detail.value._id,
-                        function (res) {
-                            var data = e.detail.value;
-                            data.data = res.data;
-                            this.$.grid.expandedItems = [data];
-                        }.bind(this));
-                }
+                // if (e.detail.value) {
+                //     $.getJSON(this.storagesobjapi + '/' + this.routeData.storageid + '.' + e.detail.value._id,
+                //         function (res) {
+                //             var data = e.detail.value;
+                //             data.data = res.data;
+                //             this.$.grid.expandedItems = [data];
+                //         }.bind(this));
+                // }
             }
 
             _pageChanged(storageid) {
