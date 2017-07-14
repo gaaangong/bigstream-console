@@ -621,7 +621,7 @@
             }
             _shortcutKeyHandler(ev) {
                 let keydown = ev.detail.keyboardEvent;
-                if (keydown.code === 'KeyN')
+                if (keydown.code === 'KeyN' && this.classList.value === 'iron-selected')
                     this._addJobDialogToggle();
             }
             _shortcutKeyEditorHandler(ev) {
