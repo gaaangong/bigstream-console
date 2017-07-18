@@ -1,6 +1,9 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
 <script src="/bower_components/Sortable/Sortable.min.js"></script>
 <link rel="import" href="/bower_components/vaadin-combo-box/vaadin-combo-box.html">
+<link rel="import" href="/bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="/bower_components/neon-animation/web-animations.html">
+
 <!--
 `<plugin>` is Description
 
@@ -66,6 +69,7 @@
                 border-top-right-radius: 10px;
                 border-top-left-radius: 10px;
                 --iron-icon-fill-color: #edeff5;
+                overflow: visible;
             }
 
             paper-dialog.size-position paper-button {
@@ -74,6 +78,22 @@
                 right: 5px;
                 margin: 0;
             }
+
+            .job-overview {
+                width: 250px;
+                box-shadow: 0px 0px 9px 0px rgba(0, 0, 0, 0.56);
+            }
+
+            .job-overview>div {
+                box-sizing: border-box;
+                font-size: 14px;
+                width: 100%;
+                background: #fff;
+                color: var(--google-grey-700);
+                padding: 15px;
+                text-align: left;
+            }
+
         </style>
         <iron-ajax loading="{{loading}}" url="[[config.api.job_api]]" handle-as="json" last-response="{{jobs}}" on-error="_ajexerror"
             id="updateJobsList" on-response="_loadJobsComplete"></iron-ajax>
@@ -110,6 +130,9 @@
                     },
                     jobLists: {
                         value: []
+                    },
+                    jobJson: {
+                        value: []
                     }
                 };
             }
@@ -127,7 +150,7 @@
                         this._addJob(temp, { value: item });
                     }, this);
 
-                    this._jobChanged();
+                    // this._jobChanged();
                 });
             }
 
@@ -159,22 +182,41 @@
 
             _addJob(ev, item) {
                 var el = document.createElement('li');
-                el.innerHTML = `<span>${item.value}</span><i class="job-remove">✖</i>`;
-                $(el).children("i")[0].addEventListener('click', (evt) => {
-                    var el = Polymer.dom(evt).rootTarget;
-                    el.parentNode.parentNode.removeChild(el.parentNode);
-                    this._jobChanged();
-                })
                 if (item.value)
-                    this.$['job-items'].appendChild(el);
-                this.$.joblist.selectedItem = null;
-                this._jobChanged();
+                    $.getJSON(`${this.config.api.job_api}/${item.value}`, (data) => {
+                        var d = new Date();
+                        var n = d.getTime();
+                        el.innerHTML = `<span id="job-${n}">${item.value}</span><i class="job-remove">✖</i>
+                <paper-tooltip for="job-${n}" position="top" animation-delay="100" class="job-overview">
+                        <div>
+                            <p>Job ID : ${data.job_id}</p>
+                            <p>Data in : ${this.arrToStr(data.data_in)}</p>
+                            <p>Data transform : ${this.arrToStr(data.data_transform)}</p>
+                            <p>Data out : ${this.arrToStr(data.data_out)}</p>
+                        </div>
+                    </paper-tooltip>`;
+                        $(el).children("i")[0].addEventListener('click', (evt) => {
+                            var el = Polymer.dom(evt).rootTarget;
+                            el.parentNode.parentNode.removeChild(el.parentNode);
+                            this._jobChanged();
+                        })
+
+                        if (item.value) {
+                            this.$['job-items'].appendChild(el);
+                        }
+                        this.$.joblist.selectedItem = null;
+                        this._jobChanged();
+                    })
             }
             _jobChanged() {
                 this.json.param.to = [];
+                let jobJson = [];
+
                 Polymer.dom(this.$['job-items']).querySelectorAll('li span').forEach(function (element) {
                     this.json.param.to.push(element.textContent);
                 }, this);
+                if (Polymer.dom(this.$['job-items']).querySelectorAll('li span').length == 0)
+                    this.$.jobListOverview.items = [];
                 this.dispatchEvent(this.pluginCallEditorChange);
 
             }
@@ -184,6 +226,20 @@
                 setTimeout(function () {
                     this.$.modal.toggle();
                 }.bind(this), 100)
+            }
+            arrToStr(arr) {
+                if (arr) {
+                    let str = '';
+                    if (arr.length)
+                        arr.forEach((item, index) => {
+                            if (index != 0)
+                                str += ', ';
+                            str += item.type;
+                        })
+                    else
+                        str = arr.type
+                    return str
+                }
             }
         }
 

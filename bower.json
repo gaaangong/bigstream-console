@@ -28,7 +28,7 @@
     "paper-card": "polymerelements/paper-card#^2.0.0",
     "paper-progress": "polymerelements/paper-progress#^2.0.1",
     "paper-menu-button": "polymerelements/paper-menu-button#^2.0.0",
-    "neon-animation": "polymerelements/neon-animation#^2.0.1",
+    "neon-animation": "PolymerElements/neon-animation#^2.0.1",
     "paper-toggle-button": "polymerelements/paper-toggle-button#^2.0.0",
     "paper-radio-button": "PolymerElements/paper-radio-button#^2.0.0",
     "paper-radio-group": "PolymerElements/paper-radio-group#^2.0.0",
@@ -36,7 +36,8 @@
     "Sortable": "sortablejs#^1.6.0",
     "vaadin-split-layout": "^2.0.0",
     "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^2.0.0",
-    "vaadin-combo-box": "v2.0.0-beta1"
+    "vaadin-combo-box": "v2.0.0-beta1",
+    "paper-tooltip": "PolymerElements/paper-tooltip#^2.0.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",
