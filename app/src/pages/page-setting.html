@@ -38,8 +38,26 @@
                 text-align: right;
             }
 
-            .section-card{
+            .section-card {
                 margin-top: 15px;
+            }
+
+            .any-empty {
+                position: fixed;
+                transition: all 0.3s ease-in;
+                height: 100%;
+                width: var(--app-drawer-width);
+                background: rgba(97, 97, 97, 0.7);
+                top: 0;
+                left: 0;
+                z-index: 1;
+                visibility: visible;
+                opacity: 1;
+            }
+
+            .any-empty[notshow] {
+                visibility: hidden;
+                opacity: 0;
             }
         </style>
 
@@ -59,21 +77,14 @@
                                     <div class="form-group row">
                                         <label for="example-text-input" class="col-12 col-form-label">Job API</label>
                                         <div class="col-12">
-                                            <input class="form-control" type="text" value="{{config.api.job_api::input}}" id="example-text-input">
+                                            <input class="form-control" type="text" value="{{config.api.job::input}}" id="example-text-input">
                                         </div>
                                     </div>
                                     <hr/>
                                     <div class="form-group row">
                                         <label for="example-search-input" class="col-12 col-form-label">Storages API</label>
                                         <div class="col-12">
-                                            <input class="form-control" type="search" value="{{config.api.storages_api::input}}" id="example-search-input">
-                                        </div>
-                                    </div>
-                                    <hr/>
-                                    <div class="form-group row">
-                                        <label for="example-search-input" class="col-12 col-form-label">Storages object API</label>
-                                        <div class="col-12">
-                                            <input class="form-control" type="search" value="{{config.api.storages_obj_api::input}}" id="example-search-input">
+                                            <input class="form-control" type="search" value="{{config.api.storages::input}}" id="example-search-input">
                                         </div>
                                     </div>
                                 </div>
@@ -94,7 +105,7 @@
 
         </div>
 
-
+        <div notshow$="[[anyEmpty]]" class="any-empty"></div>
     </template>
 
     <script>
@@ -115,6 +126,9 @@
                     config: {
                         type: Object,
                         value: () => { return store.get() }
+                    },
+                    anyEmpty: {
+                        value: true
                     }
                 };
             }
@@ -127,21 +141,31 @@
                 super.ready();
 
                 Polymer.RenderStatus.afterNextRender(this, function () {
-
+                    if (store.get('api.job') === '' || store.get('api.storages') === '') {
+                        this.anyEmpty = false;
+                    }
                 });
             }
 
             _savebt(ev) {
+                if (!store.get('api'))
+                    store.set({ 'api': {} });
                 store.set({
-                    'api.job_api': this.config.api.job_api,
-                    'api.storages_api': this.config.api.storages_api,
-                    'api.storages_obj_api': this.config.api.storages_obj_api
+                    'api.job': this.config.api.job,
+                    'api.job_api': this.config.api.job + '/jobs',
+                    'api.storages': this.config.api.storages,
+                    'api.storages_api': this.config.api.storages + '/storage',
+                    'api.storages_obj_api': this.config.api.storages + '/object'
                 });
                 this.dispatchEvent(new CustomEvent('config-update'));
                 this.$.toast.text = "Config saved";
                 this.$.toast.horizontalAlign = "right";
                 this.$.toast.verticalAlign = "top";
                 this.$.toast.open();
+                if (store.get('api.job') === '' || store.get('api.storages') === '')
+                    this.anyEmpty = false;
+                else
+                    this.anyEmpty = true;
             }
 
         }

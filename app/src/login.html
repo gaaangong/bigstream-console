@@ -1,0 +1,233 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/paper-spinner/paper-spinner-lite.html">
+<!--
+`<login>` is Description
+
+@element login
+-->
+<dom-module id="login-element">
+    <template>
+        <style include="bootstrap"></style>
+        <style>
+             :host {
+                display: block;
+                box-sizing: border-box;
+                height: 100%;
+                width: 100%;
+                box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+             :host::before {
+                height: 100%;
+                width: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                background: #000;
+                content: "";
+                opacity: 0.2;
+            }
+
+            .logo {
+                color: azure;
+                text-align: center;
+                padding: 19px 0;
+                position: relative;
+                margin: 0 auto;
+                font-size: 30px;
+                width: 245px;
+            }
+
+            .logo span {
+                border-radius: 10px;
+                color: azure;
+                border: azure 1px solid;
+                padding: 10px 8px 17px;
+                margin-right: 8px;
+                --iron-icon-width: 50px;
+                --iron-icon-height: 50px;
+            }
+
+            .logo small {
+                position: absolute;
+                top: 9px;
+                right: 15px;
+                background: brown;
+                padding: 0px 5px;
+                font-size: 14px;
+            }
+
+            .login-box {
+                overflow: hidden;
+                position: fixed;
+                top: 40%;
+                left: 50%;
+                width: 30em;
+                margin-top: -9em;
+                /*set to a negative number 1/2 of your height*/
+                margin-left: -15em;
+                /*set to a negative number 1/2 of your width*/
+                background: rgba(248, 248, 248, 0.9);
+                border-radius: 10px;
+                box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+
+            .logo-bar {
+                background: #2f323a;
+            }
+
+            @keyframes fadeAndScale {
+                from {
+                    opacity: 0;
+                    transform: scale(1.3, 1.3);
+                    visibility: hidden;
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1, 1);
+                    visibility: visible;
+                }
+            }
+
+            .login-form {
+                padding: 15px;
+            }
+
+            .login-form input::-webkit-input-placeholder {
+                color: var(--google-grey-500);
+            }
+
+            .form-control-feedback {
+                visibility: hidden;
+                opacity: 0;
+                transition: all 0.3s ease-in;
+                height: 0;
+            }
+
+            .has-danger .form-control-feedback {
+                visibility: visible;
+                opacity: 1;
+                height: 20px;
+            }
+
+            .loading {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                display: none;
+            }
+
+            paper-spinner-lite.grey {
+                --paper-spinner-color: var(--google-grey-300);
+            }
+
+            div.content {
+
+                transition: all 0.3s ease-in;
+            }
+
+            .login-box>div.content[loading] {
+                filter: blur(20px);
+                transform: scale(1.11);
+            }
+
+            .login-box>div.content[loading]::before {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                top: 0;
+                left: 0;
+                content: ''
+            }
+
+            .loading[loading] {
+                display: block;
+            }
+        </style>
+
+        <div class="login-box">
+            <div class="content" loading$="[[loading]]">
+                <div class="logo-bar">
+                    <div class="logo">
+                        <span><iron-icon icon="icons:cloud-download"></iron-icon></span>
+                        <text>Bigstream</text>
+                        <small>console<div class="arrow-down"></div></small></div>
+                </div>
+                <form class="login-form">
+                    <div class="form-group">
+                        <label class="form-control-label" for="username">Username / E-mail</label>
+                        <input type="text" class="form-control" id="username" placeholder="username" autofocus required>
+                        <div class="form-control-feedback">Username is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label" for="password">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="password" required>
+                        <div class="form-control-feedback">Password is required</div>
+                    </div>
+                    <paper-button class="btn btn-success" on-click="_submit">Login</paper-button>
+                </form>
+            </div>
+            <div class="loading" loading$="[[loading]]">
+                <paper-spinner-lite class="grey" active></paper-spinner-lite>
+            </div>
+        </div>
+
+    </template>
+
+    <script>
+        class loginElement extends Polymer.Element {
+
+            static get is() { return 'login-element'; }
+
+            static get properties() {
+                return {
+
+                };
+            }
+
+            constructor() {
+                super();
+            }
+
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                });
+            }
+
+            _submit() {
+                if (this.$.username.value === '')
+                    this.$.username.parentNode.classList.add('has-danger');
+                else
+                    this.$.username.parentNode.classList.remove('has-danger');
+                if (this.$.password.value === '')
+                    this.$.password.parentNode.classList.add('has-danger');
+                else
+                    this.$.password.parentNode.classList.remove('has-danger');
+
+                if (!(this.$.username.value === '') && !(this.$.password.value === '')) {
+                    store.set({ 'OAuth': {} });
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.loading = false;
+                        this.dispatchEvent(new CustomEvent('logged-in', {
+                            "detail": {
+                                token: "THISISFACKTOKEN"
+                            }
+                        }));
+                    }, 2000)
+
+                }
+            }
+
+        }
+
+        window.customElements.define(loginElement.is, loginElement);
+    </script>
+</dom-module>
