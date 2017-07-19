@@ -557,7 +557,13 @@
                         ev_temp.detail = {};
                         ev_temp.detail.job_id = newJob.job_id;
                         this._selectedJobList(ev_temp);
-                    });
+                    }).fail(() => {
+                        let msg = {
+                            title: `Can't connect ${this.config.api.job_api}`,
+                            detail: "Please make sure your Job API is correct."
+                        }
+                        ipc.send('open-error-dialog', msg)
+                    });;
                     this.newJobName = "";
                     dialogTarget.toggle();
                     $(dialogTarget.querySelector('input')).removeClass("form-control-danger");
@@ -598,6 +604,12 @@
                     // if (data.response === 'OK')
                     //     console.log('added');
                     this.$.joblistElement._updateJoblist();
+                }).fail(() => {
+                    let msg = {
+                        title: `Can't connect ${this.config.api.job_api}`,
+                        detail: "Please make sure your Job API is correct."
+                    }
+                    ipc.send('open-error-dialog', msg)
                 });
             }
             _deleteJob(ev) {

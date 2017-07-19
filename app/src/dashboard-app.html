@@ -86,7 +86,8 @@
       page-storages,
       page-storages-detail,
       page-setting,
-      page-jobs-editor {
+      page-jobs-editor,
+      page-home {
         height: 100%;
         width: 100%;
         box-sizing: border-box;
@@ -99,7 +100,8 @@
       page-storages,
       page-storages-detail,
       page-setting,
-      page-jobs-editor {
+      page-jobs-editor,
+      page-home {
         padding-bottom: 65px;
         padding-top: 65px;
       }
@@ -166,7 +168,7 @@
           <dashboard-sidemenu page="{{page}}" id="sidemenu" iscollapse$="[[iscollapse]]"></dashboard-sidemenu>
         </div>
         <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
-          <page-home id="home" name="home"></page-home>
+          <page-home id="home" name="home" config="{{config}}"></page-home>
           <page-jobs id="jobs" name="jobs" jobapi="{{jobapi}}"></page-jobs>
           <page-createjob id="jobs-create" name="jobs-create" jobapi="{{jobapi}}"></page-createjob>
           <page-jobs-editor id="jobs-editor" name="jobs-editor" config="{{config}}"></page-jobs-editor>
@@ -238,7 +240,10 @@
             this.iscollapse = !this.iscollapse;
             this.$.sidemenu.iscollapse = this.iscollapse;
           });
-
+          if (store.get('api.job') === '' || store.get('api.storages') === '') {
+            window.history.pushState({}, null, '/setting');
+            window.dispatchEvent(new CustomEvent('location-changed'));
+          }
         });
 
       }

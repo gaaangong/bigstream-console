@@ -19,18 +19,88 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: block;
         box-sizing: border-box;
         padding: 10px;
+        padding-bottom: 25px!important;
+        padding-top: 25px!important;
       }
+
       paper-card {
         width: 100%;
+        border-radius: 5px;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .lite-detail {
+        
+        color: var(--google-grey-100);
+      }
+
+      .row {
+        margin-bottom: 25px;
+      }
+
+      .paper-header {
+        @apply --paper-font-headline;
+      }
+
+      .rate-name {
+        color: var(--paper-grey-600);
+        margin: 10px 0;
+      }
+
+      paper-icon-button.rate-icon {
+        --iron-icon-fill-color: white;
+        --iron-icon-stroke-color: var(--paper-grey-600);
       }
     </style>
+    <iron-ajax auto loading="{{loading}}" url="[[config.api.job_api]]" handle-as="json" last-response="{{jobs}}" on-error="_ajexerror"
+      id="updateJobsList"></iron-ajax>
+    <iron-ajax url="[[config.api.storages_api]]" loading="{{loading}}" handle-as="json" last-response="{{storages}}" id="updateStorageLists" on-error="_ajexerror" auto></iron-ajax>
 
     <div class="container-fluid">
       <div class="row">
-        
-      </div>
-    </div>
-    </div>
+        <div class="col-sm-3">
+          <paper-card class="lite-detail" style="--paper-card-background-color: var(--paper-cyan-a700)">
+            <div class="card-content">
+              <div class="paper-header"><iron-icon icon="device:storage"></iron-icon> [[storages.length]] storages</div>
+            </div>
+          </paper-card>
+          </div>
+          <div class="col-sm-3">
+            <paper-card class="lite-detail" style="--paper-card-background-color: var(--google-green-500);">
+            <div class="card-content">
+              <div class="paper-header"><iron-icon icon="icons:check-circle"></iron-icon> [[jobs.length]] Active jobs</div>
+            </div>
+            </paper-card>
+          </div>
+          <div class="col-sm-3">
+            <paper-card class="lite-detail" style="--paper-card-background-color: var(--google-red-500);">
+            <div class="card-content">
+              <div class="paper-header"><iron-icon icon="icons:cancel"></iron-icon> [[jobs.length]] Inactive jobs</div>
+            </div>
+            </paper-card>
+          </div>
+          <div class="col-sm-3">
+            <paper-card class="lite-detail" style="--paper-card-background-color: var(--google-yellow-500)">
+            <div class="card-content">
+              <div class="paper-header"><iron-icon icon="icons:check-circle"></iron-icon> [[jobs.length]] Jobs</div>
+            </div>
+            </paper-card>
+          </div>
+          </div>
+           <div class="row">
+        <div class="col-sm-12">
+          <paper-card class="big-detail">
+            <div class="card-content" style="height: 603px;">
+              <div class="paper-header">Some information</div>
+              <div class="rate-name">Mac Miller</div>
+              <div>Live from space</div>
+            </div>
+            <div class="card-actions">
+            </div>
+          </paper-card>
+        </div>
+      </div> 
+        </div>
   </template>
 
   <script>

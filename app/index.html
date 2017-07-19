@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap-reboot.min.css">
 
   <link rel="import" href="/src/dashboard-app.html">
+  <link rel="import" href="/src/login.html">
 
   <style>
     html {
@@ -250,20 +251,40 @@
         visibility: hidden;
       }
     }
+
+    dashboard-app {
+      transition: filter 0.5s ease-in;
+    }
+
+    dashboard-app.not-logged {
+      filter: blur(10px);
+    }
+
+    login-element {
+      transition: all 0.6s ease-in;
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    login-element.not-logged {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
 <script>
   // Electron IPC
   const ipc = require('electron').ipcRenderer;
-
   // config
   const Store = require('electron-store');
   const store = new Store();
+  // store.delete('OAuth');
 
 </script>
 
 <body>
   <dashboard-app id="main"></dashboard-app>
+  <login-element id="login"></login-element>
   <div id="loading">
     <div class="cssload-box-loading">
     </div>
@@ -271,11 +292,46 @@
 </body>
 
 <script>
+  const _logedinCheck = () => {
+    if (!store.get('OAuth') && !store.get('OAuth.token')) {
+      document.getElementById('main').classList.add('not-logged');
+      document.getElementById('login').classList.add('not-logged');
+    }
+  }
   window.addEventListener('WebComponentsReady', function (e) {
     setTimeout(function () {
-      document.getElementById('loading').setAttribute("loaded", "");
-    }, 500);
+      _logedinCheck();
+      document.getElementById('login').addEventListener('logged-in', () => {
+        document.getElementById('main').classList.remove('not-logged');
+        document.getElementById('login').classList.remove('not-logged');
+        if (store.get('api.job') === '' || store.get('api.storages') === '') {
+          window.history.pushState({}, null, '/setting');
+          window.dispatchEvent(new CustomEvent('location-changed'));
+        }
+        console.log('logged-in');
+      });
 
+      document.getElementById('loading').setAttribute("loaded", "");
+    }, 900);
+
+    (function (send) {
+      XMLHttpRequest.prototype.send = function (data) {
+        // in this case I'm injecting an access token (eg. accessToken) in the request headers before it gets sent
+        if (store.get('OAuth') && store.get('OAuth.token')) this.setRequestHeader('x-access-token', store.get('OAuth.token'));
+        else {
+          _logedinCheck();
+        }
+        // When this Response
+        this.onreadystatechange = () => {
+          //  Check token is here
+          if (this.responseURL.match(store.get('api.job')) && this.response && this.response.status === 'unauthorization') {
+            store.delete('OAuth');
+            _logedinCheck();
+          }
+        };
+        send.call(this, data);
+      };
+    })(XMLHttpRequest.prototype.send);
   });
 
 </script>
