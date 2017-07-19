@@ -72,7 +72,7 @@
                 /*set to a negative number 1/2 of your width*/
                 background: rgba(248, 248, 248, 0.9);
                 border-radius: 10px;
-                box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1), 0px 0px 131px -6px rgba(0, 0, 0, 0.25);
             }
 
             .logo-bar {
@@ -92,7 +92,7 @@
                 }
             }
 
-            .login-form {
+            #login {
                 padding: 15px;
             }
 
@@ -110,13 +110,14 @@
             .has-danger .form-control-feedback {
                 visibility: visible;
                 opacity: 1;
-                height: 20px;
+                height: initial;
             }
 
             .loading {
                 position: absolute;
                 top: 50%;
                 left: 50%;
+                margin-left: -1.5em;
                 display: none;
             }
 
@@ -125,7 +126,7 @@
             }
 
             div.content {
-
+                display: block;
                 transition: all 0.3s ease-in;
             }
 
@@ -147,6 +148,29 @@
             .loading[loading] {
                 display: block;
             }
+
+            .page {
+                width: 100%;
+                visibility: hidden;
+                opacity: 0;
+                transition: all 0.2s ease-out;
+                max-height: 0px;
+                padding: 0;
+            }
+
+            #settings.page.active {
+                padding: 15px;
+                max-height: 300px;
+            }
+
+            .page.active {
+                visibility: visible;
+                opacity: 1;
+            }
+
+            #login.page.active {
+                max-height: 400px;
+            }
         </style>
 
         <div class="login-box">
@@ -157,19 +181,42 @@
                         <text>Bigstream</text>
                         <small>console<div class="arrow-down"></div></small></div>
                 </div>
-                <form class="login-form">
+                <div class="page active" id="settings">
                     <div class="form-group">
-                        <label class="form-control-label" for="username">Username / E-mail</label>
-                        <input type="text" class="form-control" id="username" placeholder="username" autofocus required>
-                        <div class="form-control-feedback">Username is required</div>
+                        <label for="example-text-input" class="col-12 form-control-label">Job API</label>
+                        <input class="form-control" type="url" value="{{config.api.job::input}}" id="example-text-input" placeholder="Ex. http://localhost:19980/v1">
                     </div>
+                    <hr/>
                     <div class="form-group">
-                        <label class="form-control-label" for="password">Password</label>
-                        <input type="password" class="form-control" id="password" placeholder="password" required>
-                        <div class="form-control-feedback">Password is required</div>
+                        <label for="example-search-input" class="col-12 form-control-label">Storages API</label>
+                        <input class="form-control" type="url" value="{{config.api.storages::input}}" id="example-search-input" placeholder="Ex. http://localhost:19080/v1">
                     </div>
-                    <paper-button class="btn btn-success" on-click="_submit">Login</paper-button>
-                </form>
+                    <hr/>
+                    <paper-button class="btn btn-success" on-click="_saveconfig">Next</paper-button>
+                </div>
+                <div class="page" id="login">
+                    <form class="login-form">
+                        <div class="form-group">
+                            <label class="form-control-label" for="username">Username / E-mail</label>
+                            <input type="text" class="form-control" id="username" placeholder="username" on-keypress="_submitEnter" autofocus required>
+                            <div class="form-control-feedback">Username is required</div>
+                        </div>
+                        <hr/>
+                        <div class="form-group">
+                            <label class="form-control-label" for="password">Password</label>
+                            <input type="password" class="form-control" id="password" placeholder="password" on-keypress="_submitEnter" required>
+                            <div class="form-control-feedback">Password is required</div>
+                        </div>
+                        <hr/>
+                        <div class="form-group" id="incorrect">
+                            <div class="form-control-feedback" style="font-size: 14px;">The user name or password is incorrect. Verify that CAPS LOCK is not on, and then retype the
+                                current user name and password.</div>
+                        </div>
+                    </form>
+                    <paper-button class="btn btn-success" on-click="_backpage">Back</paper-button>
+                    <paper-button class="btn btn-info" on-click="_submit">Login</paper-button>
+
+                </div>
             </div>
             <div class="loading" loading$="[[loading]]">
                 <paper-spinner-lite class="grey" active></paper-spinner-lite>
@@ -185,7 +232,7 @@
 
             static get properties() {
                 return {
-
+                    config: Object
                 };
             }
 
@@ -197,7 +244,7 @@
                 super.ready();
 
                 Polymer.RenderStatus.afterNextRender(this, function () {
-
+                    this.config = store.get();
                 });
             }
 
@@ -212,18 +259,58 @@
                     this.$.password.parentNode.classList.remove('has-danger');
 
                 if (!(this.$.username.value === '') && !(this.$.password.value === '')) {
-                    store.set({ 'OAuth': {} });
+
                     this.loading = true;
-                    setTimeout(() => {
-                        this.loading = false;
-                        this.dispatchEvent(new CustomEvent('logged-in', {
-                            "detail": {
-                                token: "THISISFACKTOKEN"
-                            }
-                        }));
-                    }, 2000)
+
+                    // user : admin, password : root
+                    if (this.$.username.value == 'admin' && this.$.password.value === 'root') {
+                        setTimeout(() => {
+                            this.$.incorrect.classList.remove('has-danger');
+                            this.loading = false;
+                            store.set({ 'OAuth': { 'token': 'THISISFACKTOKEN' } });
+                            this.dispatchEvent(new CustomEvent('logged-in', {
+                                "detail": {
+                                    token: "THISISFACKTOKEN"
+                                }
+                            }));
+                        }, 2000)
+                    }
+                    else {
+                        setTimeout(() => {
+                            this.$.incorrect.classList.add('has-danger');
+                            this.loading = false;
+                        }, 2000)
+                    }
 
                 }
+            }
+
+            _submitEnter(e) {
+                if (e.keyCode == 13)
+                    this._submit();
+            }
+
+            _saveconfig(ev) {
+                if (!store.get('api'))
+                    store.set({ 'api': {} });
+                store.set({
+                    'api.job': this.config.api.job,
+                    'api.job_api': this.config.api.job + '/jobs',
+                    'api.storages': this.config.api.storages,
+                    'api.storages_api': this.config.api.storages + '/storage',
+                    'api.storages_obj_api': this.config.api.storages + '/object'
+                });
+                this._nextpage(ev);
+            }
+
+            _nextpage(ev) {
+                Polymer.dom(ev).rootTarget.parentNode.classList.remove('active')
+                Polymer.dom(ev).rootTarget.parentNode.nextElementSibling.classList.add('active')
+            }
+
+            _backpage(ev) {
+                Polymer.dom(ev).rootTarget.parentNode.classList.remove('active')
+                Polymer.dom(ev).rootTarget.parentNode.previousElementSibling.classList.add('active')
             }
 
         }

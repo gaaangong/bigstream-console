@@ -77,14 +77,14 @@
                                     <div class="form-group row">
                                         <label for="example-text-input" class="col-12 col-form-label">Job API</label>
                                         <div class="col-12">
-                                            <input class="form-control" type="text" value="{{config.api.job::input}}" id="example-text-input">
+                                            <input class="form-control" type="url" value="{{config.api.job::input}}" id="example-text-input" placeholder="Ex. http://localhost:19980/v1">
                                         </div>
                                     </div>
                                     <hr/>
                                     <div class="form-group row">
                                         <label for="example-search-input" class="col-12 col-form-label">Storages API</label>
                                         <div class="col-12">
-                                            <input class="form-control" type="search" value="{{config.api.storages::input}}" id="example-search-input">
+                                            <input class="form-control" type="url" value="{{config.api.storages::input}}" id="example-search-input" placeholder="Ex. http://localhost:19080/v1">
                                         </div>
                                     </div>
                                 </div>
@@ -105,7 +105,7 @@
 
         </div>
 
-        <div notshow$="[[anyEmpty]]" class="any-empty"></div>
+        <!-- <div notshow$="[[anyEmpty]]" class="any-empty"></div> -->
     </template>
 
     <script>
@@ -162,10 +162,10 @@
                 this.$.toast.horizontalAlign = "right";
                 this.$.toast.verticalAlign = "top";
                 this.$.toast.open();
-                if (store.get('api.job') === '' || store.get('api.storages') === '')
-                    this.anyEmpty = false;
-                else
-                    this.anyEmpty = true;
+                // if (store.get('api.job') === '' || store.get('api.storages') === '')
+                //     this.anyEmpty = false;
+                // else
+                //     this.anyEmpty = true;
             }
 
         }
