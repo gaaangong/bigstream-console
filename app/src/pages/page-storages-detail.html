@@ -358,13 +358,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                             <iron-icon icon="icons:close" style="color: var(--google-grey-500);"></iron-icon>
                         </paper-button>
                         <div class="obj-title">
-                            <small>[[activeItem.data.object_type]] [[activeItem.data.data_type]]</small>
+                            <small>[[objectType]] [[dataType]]</small>
                             <h6><span>ID</span>[[activeItem._id]]</h6>
                         </div>
                         <div class="details">
-                            <!-- <paper-button>view file</paper-button> -->
+                            <!-- <template is="dom-if" if="[[_isBinary(dataType)]]"> -->
+                            <paper-button on-click="_saveFile" style="border: none;border-bottom: 1px solid var(--google-grey-300);border-radius: 0;margin: 0;width: 100%;background: var(--google-grey-100);text-transform: none;">Download this object</paper-button>
+                            <!-- </template> -->
                             <jsonviewer-element id="jsonviewer"></jsonviewer-element>
                         </div>
+                        <template is="dom-if" if="[[detailLoading]]">
+                            <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;    top: 0;"></paper-progress>
+                        </template>
                     </div>
                     <!-- END OBJECT DETAIL -->
 
@@ -401,6 +406,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         notify: true,
                         value: false
                     },
+                    detailLoading: {
+                        type: Boolean,
+                        notify: true,
+                        value: false
+                    },
+
                     jsoneditor: Object,
                     stats: Object,
                     filterselected: {
@@ -411,7 +422,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     urlquery: String,
                     activeItem: {
                         observer: '_activeItemChanged'
-                    }
+                    },
+                    objectType: String,
+                    dataType: String
+
                 };
             }
             static get observers() {
@@ -442,7 +456,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             _pageChanged(storageid) {
                 this.items = [];
                 this.mainurl = this.storagesapi + '/' + this.routeData.storageid + '/objects?';
-                this.urlquery = this.mainurl + 'last=100';
+                this.urlquery = this.mainurl + 'field=meta&last=100';
                 this.$.updateStorageLists.generateRequest();
                 this.$.grid.clearCache();
 
@@ -458,9 +472,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             _activeItemChanged(item) {
                 this.$.grid.selectedItems = item ? [item] : [];
+
+                this.detailLoading = true;
                 if (item) {
-                    this.$.jsonviewer.json = item;
-                    $(this.$.objDetail).attr('opened', '');
+                    this.$.jsonviewer.json = {};
+                    $.getJSON(this.storagesobjapi + '/' + this.routeData.storageid + '.' + item._id,
+                        (res) => {
+                            this.objectType = res.data.object_type;
+                            this.dataType = res.data.data_type;
+                            this.detailLoading = false;
+                            item.data = res.data;
+                            this.$.jsonviewer.json = item;
+                            $(this.$.objDetail).attr('opened', '');
+                        });
                 }
                 else
                     this._closeObjDetail();
@@ -501,7 +525,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             _lastfilterSubmit() {
                 this.loading = true;
-                $.getJSON(this.mainurl + 'last=' + this.lastfilter, (data) => {
+                $.getJSON(this.mainurl + 'field=meta&last=' + this.lastfilter, (data) => {
                     this.items = data;
                     this.loading = false;
                 })
@@ -509,7 +533,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             _fromlimitSubmit() {
                 this.loading = true;
-                $.getJSON(this.mainurl + 'from=' + this.fromfilter + '&limit=' + this.limitfilter, (data) => {
+                $.getJSON(this.mainurl + 'field=meta&from=' + this.fromfilter + '&limit=' + this.limitfilter, (data) => {
                     this.items = data;
                     this.loading = false;
                 })
@@ -526,6 +550,54 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             // Object Detail panel
             _closeObjDetail(ev) {
                 $(this.$.objDetail).removeAttr('opened');
+            }
+
+            _isBinary(datatype) {
+                if (datatype === 'binary') return true;
+                return false;
+            }
+
+            _saveFile() {
+                let options = {
+                    title: 'Save a Data',
+                    defaultPath: `${this.activeItem._id}.bin`
+                }
+
+                var fs = require('fs');
+                // let content = new Buffer(this.activeItem.data.data, 'base64');
+                ipc.send('save-dialog', options);
+
+                ipc.on('saved-file', (event, path) => {
+
+                    $.ajax({
+                        type: 'GET',
+                        url: this.storagesobjapi + '/' + this.routeData.storageid + '.' + this.activeItem._id + '/data',
+                        success:  (data, textStatus, request)=>{
+                            var wstream = fs.createWriteStream(path);
+                            if (request.getResponseHeader('Content-Type') === 'application/octet-stream') {
+                                let content = new Buffer(this.activeItem.data.data, 'base64');
+                                wstream.write(content, 'base64');
+                            }
+                            else
+                                wstream.write(JSON.stringify(data), 'utf8');
+
+                            wstream.end();
+                        },
+                        error: function (request, textStatus, errorThrown) {
+                            // alert(request.getResponseHeader('some_header'));
+                        }
+                    });
+
+
+                    // fs.writeFile(path, wstream, 'utf16le', (err) => {
+
+                    //     if (err) {
+                    //         console.log("An error ocurred creating the file " + err.message)
+                    //     }
+
+                    //     console.log("The file has been succesfully saved");
+                    // });
+                })
             }
         }
 
