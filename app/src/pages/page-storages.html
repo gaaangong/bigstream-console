@@ -91,6 +91,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           font-size: 13px;
         }
         ;
+        --vaadin-grid-body-row-hover-cell: {
+          cursor: pointer;
+          background-color: var(--paper-grey-200);
+        }
+        ;
+      }
+
+      .refreshbt {
+        cursor: pointer;
+        margin-right: 15px;
+      }
+
+      .refreshbt.active {
+        animation-name: spin;
+        animation-duration: 0.4s;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
     </style>
     <app-toolbar>
@@ -99,6 +123,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <paper-input label="Search" value="{{_filterJobName::input}}">
         <iron-icon icon="icons:search" slot="prefix"></iron-icon>
       </paper-input>
+      <iron-icon icon="icons:refresh" class="refreshbt" on-click="_refreshbt"></iron-icon>
     </app-toolbar>
     <!-- Fetch an array of users to be shown in the grid -->
     <!--<iron-ajax url="[[storagesapi]]" handle-as="json" last-response="{{storages}}" id="updateStorageLists" on-response="_loadStoragesComplete"></iron-ajax>-->
@@ -143,7 +168,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <template is="dom-if" if="[[job_error]]">
           <div style="padding: 85px 15px 0;position: absolute;top: 0;width:100%;height: 100%;background: rgba(239, 239, 239, 0.79);    z-index: 112;">
             <div class="alert alert-danger" role="alert" style="width:100%">
-              <strong>Error !</strong> Can't GET [[storagesapi]], 404 (Not Found), Please go to <strong><a style="color: #aa4644;" href="/setting">Setting</a></strong> to set other storages api
+              <strong>Error !</strong> Can't GET [[storagesapi]], 404 (Not Found), Please go to <strong><a style="color: #aa4644;" href="/setting">Setting</a></strong>              to set other storages api
             </div>
           </div>
         </template>
@@ -198,6 +223,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.storageLists = [];
         this.$.material.clearCache();
         this.job_error = true;
+      }
+
+      _refreshbt(ev) {
+        let refreshbt = Polymer.dom(this.root).querySelector('iron-icon.refreshbt');
+        refreshbt.classList.remove('active');
+        refreshbt.classList.add('active');
+        setTimeout(() => {
+          refreshbt.classList.remove('active');
+        }, 400);
+        Polymer.dom(this.root).querySelectorAll('iron-ajax').forEach((el) => {
+          el.generateRequest();
+        })
       }
     }
 
