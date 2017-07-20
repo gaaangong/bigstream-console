@@ -300,6 +300,7 @@
                     'api.storages_api': this.config.api.storages + '/storage',
                     'api.storages_obj_api': this.config.api.storages + '/object'
                 });
+                this.dispatchEvent(new CustomEvent('config-saved'));
                 this._nextpage(ev);
             }
 

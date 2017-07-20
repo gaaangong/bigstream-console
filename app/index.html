@@ -303,15 +303,20 @@
   window.addEventListener('WebComponentsReady', function (e) {
     setTimeout(function () {
       _logedinCheck();
-      document.getElementById('login').addEventListener('logged-in', () => {
-        document.getElementById('main').classList.remove('not-logged');
-        document.getElementById('login').classList.remove('not-logged');
-        if (store.get('api.job') === '' || store.get('api.storages') === '') {
-          window.history.pushState({}, null, '/setting');
-          window.dispatchEvent(new CustomEvent('location-changed'));
-        }
-        console.log('logged-in');
-      });
+      document.getElementById('login')
+        .addEventListener('logged-in', () => {
+          document.getElementById('main').classList.remove('not-logged');
+          document.getElementById('login').classList.remove('not-logged');
+          if (store.get('api.job') === '' || store.get('api.storages') === '') {
+            window.history.pushState({}, null, '/setting');
+            window.dispatchEvent(new CustomEvent('location-changed'));
+          }
+          console.log('logged-in');
+        });
+      document.getElementById('login')
+        .addEventListener('config-saved', (ev) => {
+          document.getElementById('main')._updateConfig();
+        });
 
       document.getElementById('loading').setAttribute("loaded", "");
     }, 900);
