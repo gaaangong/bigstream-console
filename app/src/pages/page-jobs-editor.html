@@ -463,10 +463,10 @@
                             "job_id": newjson.job_id,
                             "active": (newjson.active === 'true' || newjson.active == true)
                         };
-                        if (newjson.trigger != this.$.trigger.get()) this.$.trigger.set(newjson.trigger);
-                        if (newjson.data_in != this.$.data_in.get()) this.$.data_in.set(newjson.data_in);
-                        if (newjson.data_transform != this.$.data_transform.get()) this.$.data_transform.set(newjson.data_transform);
-                        if (newjson.data_out != this.$.data_out.get()) this.$.data_out.set(newjson.data_out);
+                        if (newjson.trigger != this.$.trigger.get() || !newjson.trigger) this.$.trigger.set(newjson.trigger);
+                        if (newjson.data_in != this.$.data_in.get() || !newjson.data_in) this.$.data_in.set(newjson.data_in);
+                        if (newjson.data_transform != this.$.data_transform.get() || !newjson.data_transform) this.$.data_transform.set(newjson.data_transform);
+                        if (newjson.data_out != this.$.data_out.get() || !newjson.data_out) this.$.data_out.set(newjson.data_out);
                         this.jsoneditor.jsonDetail.set(detail);
                         this.jsonResult = newjson;
                     }.bind(this);

@@ -44,6 +44,7 @@
                 border: 1px solid var(--google-grey-300);
                 margin-bottom: 9px;
                 position: relative;
+                border-radius: 5px;
             }
 
             .job-remove {
@@ -80,8 +81,9 @@
             }
 
             .job-overview {
-                width: 250px;
+                width: 350px;
                 box-shadow: 0px 0px 9px 0px rgba(0, 0, 0, 0.56);
+                --paper-tooltip-opacity: 1;
             }
 
             .job-overview>div {
@@ -94,6 +96,23 @@
                 text-align: left;
             }
 
+            .job-overview>div p {
+                border-bottom: 1px solid var(--google-grey-300);
+                padding-bottom: 5px;
+                margin-bottom: 5px;
+                line-height: 25px;
+            }
+
+            .job-overview span.triangle {
+                width: 0;
+                height: 0;
+                border-style: solid;
+                border-width: 10px 10px 0 10px;
+                border-color: #616161 transparent transparent transparent;
+                position: absolute;
+                bottom: -8px;
+                left: 25px;
+            }
         </style>
         <iron-ajax loading="{{loading}}" url="[[config.api.job_api]]" handle-as="json" last-response="{{jobs}}" on-error="_ajexerror"
             id="updateJobsList" on-response="_loadJobsComplete"></iron-ajax>
@@ -131,8 +150,8 @@
                     jobLists: {
                         value: []
                     },
-                    jobJson: {
-                        value: []
+                    numJob: {
+                        value: 0
                     }
                 };
             }
@@ -145,9 +164,11 @@
                 super.ready();
 
                 Polymer.RenderStatus.afterNextRender(this, function () {
-                    this.json.param.to.forEach((item) => {
+                    this.json.param.to.forEach((item, index) => {
                         let temp = {};
                         this._addJob(temp, { value: item });
+                        // if (index == this.json.param.to.length - 1)
+                        //     this.editting = false;
                     }, this);
 
                     // this._jobChanged();
@@ -182,37 +203,55 @@
 
             _addJob(ev, item) {
                 var el = document.createElement('li');
-                if (item.value)
+                var n = this.numJob;
+                el.setAttribute("id", "job-" + n);
+
+                if (item.value) {
+                    this.numJob += 1;
                     $.getJSON(`${this.config.api.job_api}/${item.value}`, (data) => {
-                        var d = new Date();
-                        var n = d.getTime();
-                        el.innerHTML = `<span id="job-${n}">${item.value}</span><i class="job-remove">✖</i>
+                        el.innerHTML = `<span class="job-name">${item.value}</span><i class="job-remove">✖</i>
                 <paper-tooltip for="job-${n}" position="top" animation-delay="100" class="job-overview">
                         <div>
-                            <p>Job ID : ${data.job_id}</p>
-                            <p>Data in : ${this.arrToStr(data.data_in)}</p>
-                            <p>Data transform : ${this.arrToStr(data.data_transform)}</p>
-                            <p>Data out : ${this.arrToStr(data.data_out)}</p>
+                            <p><strong>Job ID : </strong>${data.job_id}</p>
+                            <p><strong>Data in : </strong>${this.arrToStr(data.data_in)}</p>
+                            <p><strong>Data transform : </strong>${this.arrToStr(data.data_transform)}</p>
+                            <p><strong>Data out : </strong>${this.arrToStr(data.data_out)}</p>
                         </div>
+                        <span class="triangle"></span>
                     </paper-tooltip>`;
+
+                    }).fail(() => {
+                        el.innerHTML = `<span class="job-name">${item.value}</span><i class="job-remove">✖</i>
+                        <paper-tooltip for="job-${n}" position="top" animation-delay="100" class="job-overview">
+                        <div style="text-align:center">
+                            "${item.value}" isn't registered
+                        </div>
+                        <span class="triangle"></span>
+                        </paper-tooltip>`;
+
+                    }).always(() => {
                         $(el).children("i")[0].addEventListener('click', (evt) => {
                             var el = Polymer.dom(evt).rootTarget;
                             el.parentNode.parentNode.removeChild(el.parentNode);
                             this._jobChanged();
                         })
-
                         if (item.value) {
+
                             this.$['job-items'].appendChild(el);
                         }
                         this.$.joblist.selectedItem = null;
-                        this._jobChanged();
+
+                        if (!this.editting)
+                            this._jobChanged();
+                        else
+                            this._isEditting();
                     })
+                }
             }
             _jobChanged() {
                 this.json.param.to = [];
-                let jobJson = [];
 
-                Polymer.dom(this.$['job-items']).querySelectorAll('li span').forEach(function (element) {
+                Polymer.dom(this.$['job-items']).querySelectorAll('li span.job-name').forEach(function (element) {
                     this.json.param.to.push(element.textContent);
                 }, this);
                 if (Polymer.dom(this.$['job-items']).querySelectorAll('li span').length == 0)
@@ -240,6 +279,10 @@
                         str = arr.type
                     return str
                 }
+            }
+            _isEditting() {
+                if (Polymer.dom(this.$['job-items']).querySelectorAll('li span.job-name').length == this.json.param.to.length)
+                    this.editting = false;
             }
         }
 
