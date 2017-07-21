@@ -321,9 +321,10 @@
       document.getElementById('loading').setAttribute("loaded", "");
     }, 900);
 
+
+    // TOKEN injecting
     (function (send) {
       XMLHttpRequest.prototype.send = function (data) {
-        // in this case I'm injecting an access token (eg. accessToken) in the request headers before it gets sent
         if (store.get('OAuth') && store.get('OAuth.token')) this.setRequestHeader('x-access-token', store.get('OAuth.token'));
         else {
           _logedinCheck();
@@ -339,6 +340,29 @@
         send.call(this, data);
       };
     })(XMLHttpRequest.prototype.send);
+
+
+    // LOG file
+    (function () {
+
+      var console = window.console
+      if (!console) return
+      function intercept(method) {
+
+        var original = console[method]
+        console[method] = function () {
+          // Do this for normal browsers
+          ipc.send('log', { method: method, text: arguments })
+          if (original.apply) {
+            original.apply(console, arguments)
+          }
+        }
+      }
+      var methods = ['log', 'warn', 'error']
+      for (var i = 0; i < methods.length; i++)
+        intercept(methods[i])
+    })();
+
   });
 
 </script>

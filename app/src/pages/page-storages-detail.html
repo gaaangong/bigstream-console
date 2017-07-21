@@ -240,11 +240,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 visibility: hidden;
                 opacity: 0;
                 color: #414e5d;
+                position: relative;
             }
 
             div#objDetail[opened] {
-                width: 350px;
-                max-width: 350px;
+                width: 450px;
+                max-width: 450px;
                 visibility: visible;
                 opacity: 1;
             }
@@ -580,7 +581,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                             }
                             else
                                 wstream.write(JSON.stringify(data), 'utf8');
-
                             wstream.end();
                         },
                         error: function (request, textStatus, errorThrown) {
