@@ -15,7 +15,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="/bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="/bower_components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="/bower_components/iron-icons/editor-icons.html">
-
+<link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/bower_components/neon-animation/web-animations.html">
 <link rel="import" href="/bower_components/vaadin-grid/all-imports.html">
 <link rel="import" href="../common/jsonviewer.html">
 
@@ -262,6 +263,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 color: #458ee2;
                 margin-right: 5px;
             }
+
+            #imgview img {
+                margin: 0;
+                padding: 0;
+            }
+
+            #imgview {
+                padding: 0;
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            #imgview iron-icon {
+                position: fixed;
+                --iron-icon-width: 130px;
+                color: var(--google-grey-100);
+                --iron-icon-height: 130px;
+                top: 40%;
+                left: 0;
+                cursor: pointer;
+            }
+
+            #imgview iron-icon:hover {
+                color: var(--google-grey-300);
+            }
+
+            #imgview iron-icon:active {
+                color: var(--google-grey-500);
+            }
+
+            #imgview::after {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: var(--iron-overlay-backdrop-background-color, #000);
+                opacity: 0;
+                transition: opacity 0.2s;
+                pointer-events: none;
+                opacity: var(--iron-overlay-backdrop-opacity, 0.6);
+                content: "";
+                z-index: -1;
+            }
         </style>
         <!-- Fetch an array of users to be shown in the grid -->
         <app-route route="[[route]]" pattern="/:storageid" data="{{routeData}}"></app-route>
@@ -323,13 +368,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         </div>
                     </iron-pages>
                 </div>
-                <template is="dom-if" if="[[loading]]">
-                    <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;    top: 173px;"></paper-progress>
-                </template>
+
                 <div class="split">
 
                     <!-- START OBJECT LISTS -->
                     <div id="objLists">
+                        <template is="dom-if" if="[[loading]]">
+                            <paper-progress value="10" indeterminate="true" style="width:100%;position: absolute;z-index: 1;"></paper-progress>
+                        </template>
                         <vaadin-grid class="material" items="{{items}}" on-active-item-changed="_onActiveItemChanged" id="grid" page-size="[[pageSize]]"
                             active-item="{{activeItem}}">
 
@@ -348,7 +394,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                                 <template>[[_timestampDate(item.meta._ts)]]</template>
                             </vaadin-grid-column>
 
-
                         </vaadin-grid>
                     </div>
                     <!-- END OBJECT LISTS -->
@@ -363,9 +408,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                             <h6><span>ID</span>[[activeItem._id]]</h6>
                         </div>
                         <div class="details">
-                            <!-- <template is="dom-if" if="[[_isBinary(dataType)]]"> -->
+
                             <paper-button on-click="_saveFile" style="border: none;border-bottom: 1px solid var(--google-grey-300);border-radius: 0;margin: 0;width: 100%;background: var(--google-grey-100);text-transform: none;">Download this object</paper-button>
-                            <!-- </template> -->
+                            <template is="dom-if" if="[[_isBinary(dataType)]]">
+                                <paper-button on-click="_viewImg" style="border: none;border-bottom: 1px solid var(--google-grey-300);border-radius: 0;margin: 0;width: 100%;background: var(--google-grey-100);text-transform: none;">view</paper-button>
+                            </template>
                             <jsonviewer-element id="jsonviewer"></jsonviewer-element>
                         </div>
                         <template is="dom-if" if="[[detailLoading]]">
@@ -379,6 +426,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
 
         <paper-toast autoFitOnAttach id="toast"></paper-toast>
+        <paper-dialog id="imgview" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
+            <h6 style="padding: 10px;background: #3e3e3e;margin: 0;color: azure;">ID : [[activeItem._id]]</h6>
+            <img src="[[storagesobjapi]]/[[routeData.storageid]].[[activeItem._id]]/data?datatype=jpg" alt="[[activeItem._id]]">
+            <iron-icon icon="icons:chevron-left" on-click="_preView"></iron-icon>
+            <iron-icon icon="icons:chevron-right" style="right: 0;left: initial;" on-click="_nextView"></iron-icon>
+        </paper-dialog>
     </template>
     <script>
         class PageStoragesDetail extends Polymer.Element {
@@ -437,7 +490,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             ready() {
                 super.ready();
 
-                Polymer.RenderStatus.afterNextRender(this, function () { });
+                Polymer.RenderStatus.afterNextRender(this, function () {
+                    this.$.imgview.addEventListener('keydown', (ev)=> {
+                        if (ev.code === 'ArrowRight')
+                            this._nextView();
+                        if (ev.code === 'ArrowLeft')
+                            this._preView()
+                    });
+                });
 
 
             }
@@ -548,14 +608,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 })
             }
 
+            _isBinary(item) {
+                return (item === 'binary')
+            }
             // Object Detail panel
             _closeObjDetail(ev) {
                 $(this.$.objDetail).removeAttr('opened');
-            }
-
-            _isBinary(datatype) {
-                if (datatype === 'binary') return true;
-                return false;
             }
 
             _saveFile() {
@@ -573,7 +631,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     $.ajax({
                         type: 'GET',
                         url: this.storagesobjapi + '/' + this.routeData.storageid + '.' + this.activeItem._id + '/data',
-                        success:  (data, textStatus, request)=>{
+                        success: (data, textStatus, request) => {
                             var wstream = fs.createWriteStream(path);
                             if (request.getResponseHeader('Content-Type') === 'application/octet-stream') {
                                 let content = new Buffer(this.activeItem.data.data, 'base64');
@@ -598,6 +656,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     //     console.log("The file has been succesfully saved");
                     // });
                 })
+            }
+
+            _viewImg() {
+                $(this.$.imgview).children('img').css('height', window.innerHeight - 100 + 'px');
+                this.$.imgview.open();
+            }
+            _findIdToIndex(idObj) {
+                var i = 0;
+                this.items.forEach(function (element, index) {
+                    if (idObj === element._id)
+                        i = index;
+                }, this);
+                return i;
+            }
+            _nextView() {
+                var nextimg = this._findIdToIndex(this.activeItem._id) + 1
+                if (nextimg < this.items.length) {
+                    this.activeItem = this.items[nextimg]
+                    $(this.$.imgview).children('img').attr('src', `${this.storagesobjapi}/${this.routeData.storageid}.${this.items[nextimg]._id}/data?datatype=jpg`);
+                }
+            }
+            _preView() {
+                var preimg = this._findIdToIndex(this.activeItem._id) - 1
+                if (preimg >= 0) {
+                    this.activeItem = this.items[preimg]
+                    $(this.$.imgview).children('img').attr('src', `${this.storagesobjapi}/${this.routeData.storageid}.${this.items[preimg]._id}/data?datatype=jpg`);
+                }
             }
         }
 
