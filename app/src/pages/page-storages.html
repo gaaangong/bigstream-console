@@ -209,6 +209,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       _loadStoragesComplete() {
         this.job_error = false;
+        this.storageLists = [];
         if (this.storages && this.storages.length)
           this.storages.forEach(function (element) {
             this.storageLists.push({
