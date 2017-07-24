@@ -559,10 +559,13 @@
                         this._selectedJobList(ev_temp);
                     }).fail(() => {
                         let msg = {
-                            title: `Can't connect ${this.config.api.job_api}`,
+                            title: `Can't connect ${this.config.api.job_api} `,
                             detail: "Please make sure your Job API is correct."
                         }
-                        ipc.send('open-error-dialog', msg)
+                        if (typeof ipc !== "undefined")
+                            ipc.send('open-error-dialog', msg)
+                        else
+                            alert(msg.title + msg.detail)
                     });;
                     this.newJobName = "";
                     dialogTarget.toggle();
@@ -609,7 +612,10 @@
                         title: `Can't connect ${this.config.api.job_api}`,
                         detail: "Please make sure your Job API is correct."
                     }
-                    ipc.send('open-error-dialog', msg)
+                    if (typeof ipc !== "undefined")
+                        ipc.send('open-error-dialog', msg)
+                    else
+                        alert(msg.title + msg.detail)
                 });
             }
             _deleteJob(ev) {

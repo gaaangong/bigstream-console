@@ -274,13 +274,34 @@
     }
   </style>
 </head>
+
+<script src="/bower_components/jquery/dist/jquery.min.js"></script>
 <script>
-  // Electron IPC
-  const ipc = require('electron').ipcRenderer;
-  // config
-  const Store = require('electron-store');
-  const store = new Store();
-  // store.delete('OAuth');
+  var store;
+  if (typeof require !== 'undefined') {
+    // Electron version
+    // Electron IPC
+    const ipc = require('electron').ipcRenderer;
+    // config
+    const Store = require('electron-store');
+    store = new Store();
+    // store.delete('OAuth');
+  }
+  else { //Web version
+    const Store = class {
+      constructor() {
+        this.value = $.getJSON('/config.json');
+      }
+      get(str) {
+        return this.value.responseJSON
+      }
+      set() {
+        console.log("this isn't feature on web client");
+      }
+    }
+    var store = new Store();
+  }
+// console.log( $.getJSON('/config.json'))
 
 </script>
 
@@ -323,23 +344,64 @@
 
 
     // TOKEN injecting
-    (function (send) {
-      XMLHttpRequest.prototype.send = function (data) {
-        if (store.get('OAuth') && store.get('OAuth.token')) this.setRequestHeader('x-access-token', store.get('OAuth.token'));
-        else {
-          _logedinCheck();
-        }
-        // When this Response
-        this.onreadystatechange = () => {
-          //  Check token is here
-          if (this.responseURL.match(store.get('api.job')) && this.response && this.response.status === 'unauthorization') {
-            store.delete('OAuth');
-            _logedinCheck();
-          }
-        };
-        send.call(this, data);
-      };
-    })(XMLHttpRequest.prototype.send);
+    var open = window.XMLHttpRequest.prototype.open,
+      send = window.XMLHttpRequest.prototype.send;
+    function openReplacement(method, url, async, user, password) {
+      this._url = url;
+      if (store.get('OAuth') && store.get('OAuth.token'))
+        if (url.match(/&+/)) url += '&token=' + store.get('OAuth.token');
+        else url += '?token=' + store.get('OAuth.token');
+      else {
+        _logedinCheck();
+      }
+      return open.apply(this, arguments);
+    }
+    function sendReplacement(data) {
+      if (this.onreadystatechange) {
+        this._onreadystatechange = this.onreadystatechange;
+      }
+      /**
+       * PLACE HERE YOUR CODE WHEN REQUEST IS SENT  
+       */
+      this.onreadystatechange = onReadyStateChangeReplacement;
+      return send.apply(this, arguments);
+    }
+
+    function onReadyStateChangeReplacement() {
+      /**
+       * PLACE HERE YOUR CODE FOR READYSTATECHANGE
+       */
+      if (this.responseURL.match(store.get('api.job')) && this.response && this.response.status === 'unauthorization') {
+        store.delete('OAuth');
+        _logedinCheck();
+      }
+      if (this._onreadystatechange) {
+        return this._onreadystatechange.apply(this, arguments);
+      }
+    }
+
+    window.XMLHttpRequest.prototype.open = openReplacement;
+    window.XMLHttpRequest.prototype.send = sendReplacement;
+    // (function (send) {
+    //   XMLHttpRequest.prototype.send = function (data) {
+
+    //     // if (store.get('OAuth') && store.get('OAuth.token')) this.setRequestHeader('Authorization', store.get('OAuth.token'));
+    //     // else {
+    //     //   _logedinCheck();
+    //     // }
+    //     // When this Response
+    //     this.onreadystatechange = () => {
+    //       //  Check token is here
+    //       if (this.responseURL.match(store.get('api.job')) && this.response && this.response.status === 'unauthorization') {
+    //         store.delete('OAuth');
+    //         _logedinCheck();
+    //       }
+    //       console.log(this.getAllResponseHeaders())
+    //     };
+    //     console.log(this)
+    //     send.call(this, data);
+    //   };
+    // })(XMLHttpRequest.prototype.send);
 
 
     // LOG file
@@ -352,7 +414,7 @@
         var original = console[method]
         console[method] = function () {
           // Do this for normal browsers
-          ipc.send('log', { method: method, text: arguments })
+          if (typeof ipc !== 'undefined') ipc.send('log', { method: method, text: arguments })
           if (original.apply) {
             original.apply(console, arguments)
           }

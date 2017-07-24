@@ -7,6 +7,7 @@ if (!store.get('api')) {
     'api.job_api': '',
     'api.storages': '',
     'api.storages_api': '',
-    'api.storages_obj_api': ''
+    'api.storages_obj_api': '',
+    'platform': 'electron'
   });
 }
