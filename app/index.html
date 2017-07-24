@@ -278,10 +278,10 @@
 <script src="/bower_components/jquery/dist/jquery.min.js"></script>
 <script>
   var store;
+  // Electron IPC
+  const ipc = require('electron').ipcRenderer;
   if (typeof require !== 'undefined') {
     // Electron version
-    // Electron IPC
-    const ipc = require('electron').ipcRenderer;
     // config
     const Store = require('electron-store');
     store = new Store();
