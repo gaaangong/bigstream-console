@@ -116,9 +116,7 @@
             "value": {
                 "type": "call",
                 "param": {
-                    "to": [
-                        "linemsg-lsr"
-                    ]
+                    "to": []
                 }
             },
             "extended": true,

@@ -603,7 +603,7 @@
             _saveJsonEditor() {
                 let json = this._getJson();
                 json.job_id = json.job_id.replace(/\s/g, '');
-                $.post(this.config.api.job_api, this._getJson(), (data, status, request) => {
+                $.post(this.config.api.job_api + '?reload=true', this._getJson(), (data, status, request) => {
                     // if (data.response === 'OK')
                     //     console.log('added');
                     this.$.joblistElement._updateJoblist();

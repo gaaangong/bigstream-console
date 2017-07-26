@@ -18,6 +18,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/bower_components/neon-animation/web-animations.html">
 <link rel="import" href="/bower_components/vaadin-grid/all-imports.html">
+<link rel="import" href="/bower_components/vaadin-date-picker/vaadin-date-picker.html">
+
 <link rel="import" href="../common/jsonviewer.html">
 
 <link rel="import" href="../bootstrap.html">
@@ -307,6 +309,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 content: "";
                 z-index: -1;
             }
+
+            vaadin-date-picker {
+                width: 100%;
+            }
         </style>
         <!-- Fetch an array of users to be shown in the grid -->
         <app-route route="[[route]]" pattern="/:storageid" data="{{routeData}}"></app-route>
@@ -334,6 +340,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         <paper-tab>Last filter</paper-tab>
                         <paper-tab>From - limit filter</paper-tab>
                         <paper-tab>by ID</paper-tab>
+                        <paper-tab>Date</paper-tab>
                     </paper-tabs>
                     <iron-pages selected="{{filterselected}}">
                         <div class="d-flex">
@@ -363,6 +370,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                             </div>
                             <div class="align-self-center">
                                 <paper-button class="submitfilter" on-click="_objidfilterSubmit">
+                                    <iron-icon icon="icons:search"></iron-icon>search</paper-button>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div style="width: 100%;padding-bottom: 8px;">
+                                <vaadin-date-picker id="start" label="From">
+                                </vaadin-date-picker>
+                            </div>
+                            <div style="width: 100%;margin-left: 25px; padding-bottom: 8px;">
+                                <vaadin-date-picker id="end" label="To">
+                                </vaadin-date-picker>
+                            </div>
+                            <div class="align-self-center">
+                                <paper-button class="submitfilter" on-click="_fromlimitSubmit">
                                     <iron-icon icon="icons:search"></iron-icon>search</paper-button>
                             </div>
                         </div>
@@ -491,11 +512,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 super.ready();
 
                 Polymer.RenderStatus.afterNextRender(this, function () {
-                    this.$.imgview.addEventListener('keydown', (ev)=> {
+                    this.$.imgview.addEventListener('keydown', (ev) => {
                         if (ev.code === 'ArrowRight')
                             this._nextView();
                         if (ev.code === 'ArrowLeft')
                             this._preView()
+                    });
+
+                    var start = this.$.start
+                    var end = this.$.end
+                    start.addEventListener('value-changed', function () {
+                        if (start.value) {
+                            // Open the end date picker with a delay to
+                            // make it less confusing.
+                            window.setTimeout(function () {
+                                end.value = start.value;
+                                end.min = start.value;
+                                start.close();
+                                end.open();
+                            }, 500);
+                        }
                     });
                 });
 
@@ -566,6 +602,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             _prev() {
                 this.page = Math.max(0, this.page - 1);
             }
+
             _timestampDate(timestamp) {
                 function addZero(i) {
                     if (i < 10) {
