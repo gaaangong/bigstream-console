@@ -10,15 +10,16 @@
   },
   "scripts": {
     "start": "electron .",
-    "create-installer-mac": "electron-installer-dmg ./release-builds/bigstream-console-darwin-x64/bigstream-console.app bigstream-console-app --out=release-builds --overwrite --icon=assets/icons/mac/icon.icns",
-    "package-win": "electron-packager . --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName='Bigstream Console App'",
+    "package-win": "electron-packager . --overwrite --asar=true --platform=win32 --arch=ia32 --icon=./source/assets/icons/win/icon.ico --prune=true --out=release-builds bigstream-console  --version-string.ProductName='Bigstream Console'",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-linux": "electron-packager . --overwrite --platform=linux --arch=x64 --icon=assets/icons/png/1080x1080.png --prune=true --out=release-builds"
+    "package-linux": "electron-packager . --overwrite --platform=linux --arch=x64 --icon=assets/icons/png/1080x1080.png --prune=true --out=release-builds",
+    "create-installer-mac": "electron-installer-dmg ./release-builds/bigstream-console-darwin-x64/bigstream-console.app bigstream-console-app --out=./release-built-installers/bigstream-console-darwin-x64 --overwrite --icon=assets/icons/mac/icon.icns",
+    "create-installer-win": "node build-win"
   },
   "main": "main.js",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
-  "description": "",
+  "description": "Bigstream management app",
   "author": "gangnobi",
   "devDependencies": {
     "electron-inspector": "^0.1.4",

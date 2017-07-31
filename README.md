@@ -31,7 +31,12 @@ $ npm run package-linux
 
 ## Create Installer
 
+This will be create installer file in ./release-built-installers
+
 ```
+# For Windows (exe file installer)
+$ npm run create-installer-win
+
 # For Mac OS X (dmg file)
 $ npm run create-installer-mac
 ```

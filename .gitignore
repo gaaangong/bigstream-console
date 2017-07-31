@@ -58,3 +58,4 @@ typings/
 .env
 
 release-builds
+release-built-installers
