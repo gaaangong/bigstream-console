@@ -39,6 +39,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 --app-primary-color: #2f323a;
                 --app-secondary-color: #5093e1;
                 overflow: hidden!important;
+                padding-bottom: 15px!important;
             }
 
             div[main-title] {
@@ -71,6 +72,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }
                 ;
             }
+
 
             ul {
                 padding: 0;
@@ -146,11 +148,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 background: #fdfdfd;
                 -webkit-box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
                 box-shadow: inset 0 6px 10px -4px rgba(0, 0, 0, 0.11);
+                padding-top: 100px;
+                padding-bottom: 130px;
             }
 
-            jsonviewer-element {
-                height: 100%;
-            }
 
             .datalist {
                 margin: 0;
@@ -221,6 +222,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             .main-page {
                 height: 100%;
+                padding-top: 60px;
                 overflow: hidden;
             }
 
@@ -251,6 +253,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 max-width: 450px;
                 visibility: visible;
                 opacity: 1;
+                box-sizing: border-box;
+                height: 100%;
+                position: relative;
             }
 
             .obj-title {
@@ -259,6 +264,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 padding: 45px 20px 5px;
                 background: #f6f7fa;
                 border-bottom: 1px solid var(--google-grey-300);
+                position: absolute;
+                z-index: 1;
+                width: 100%;
+                top: 0;
             }
 
             .obj-title h6 span {
@@ -324,7 +333,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 [[titlePage]] <span style="color:#414e5d;">| [[routeData.storageid]]</span></div>
         </app-toolbar>
 
-        <div class="app-grid stats">
+        <div class="app-grid stats" style="position: absolute;width: 100%;">
             <div class="item">
                 <span><iron-icon icon="editor:insert-drive-file"></iron-icon> file name : [[stats.filename]]</span>
                 <span><iron-icon icon="editor:attach-file"></iron-icon> file size : [[stats.filesize]]</span>
@@ -406,12 +415,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                             </vaadin-grid-column>
 
                             <vaadin-grid-column>
-                                <template class="header">List</template>
+                                <template class="header">
+                                    <vaadin-grid-sorter path="_id">List</vaadin-grid-sorter>
+                                </template>
                                 <template><span class="mini-icon">{ }</span> id : [[item._id]]</template>
                             </vaadin-grid-column>
 
                             <vaadin-grid-column>
-                                <template class="header">Create at</template>
+                                <template class="header">
+                                    <vaadin-grid-sorter path="meta._ts">Create at</vaadin-grid-sorter>
+                                </template>
                                 <template>[[_timestampDate(item.meta._ts)]]</template>
                             </vaadin-grid-column>
 
@@ -421,8 +434,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
                     <!-- START OBJECT DETAIL -->
                     <div id="objDetail">
-                        <paper-button style="border-radius: 30px;min-width: 50px;position: absolute;right: 0" on-click="_closeObjDetail">
-                            <iron-icon icon="icons:close" style="color: var(--google-grey-500);"></iron-icon>
+                        <paper-button style="border-radius: 30px;min-width: 50px;position: absolute;right: 0 ;top: 0;z-index: 2;" on-click="_closeObjDetail">
+                            <iron-icon icon="icons:close" style="color: var(--google-grey-500);    "></iron-icon>
                         </paper-button>
                         <div class="obj-title">
                             <small>[[objectType]] [[dataType]]</small>
@@ -432,7 +445,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
                             <paper-button on-click="_saveFile" style="border: none;border-bottom: 1px solid var(--google-grey-300);border-radius: 0;margin: 0;width: 100%;background: var(--google-grey-100);text-transform: none;">Download this object</paper-button>
                             <template is="dom-if" if="[[_isBinary(dataType)]]">
-                                <paper-button on-click="_viewImg" style="border: none;border-bottom: 1px solid var(--google-grey-300);border-radius: 0;margin: 0;width: 100%;background: var(--google-grey-100);text-transform: none;">view</paper-button>
+                                <paper-button on-click="_viewImg" style="border: none;border-bottom: 1px solid var(--google-grey-300);border-radius: 0;margin: 0;width: 100%;background: var(--google-grey-100);text-transform: none;border-top: 1px solid #fff;">view</paper-button>
                             </template>
                             <jsonviewer-element id="jsonviewer"></jsonviewer-element>
                         </div>

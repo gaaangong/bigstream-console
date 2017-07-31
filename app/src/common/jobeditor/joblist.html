@@ -16,6 +16,9 @@
 
             .joblist .active-status {
                 color: red;
+                font-size: 20px;
+                position: absolute;
+                top: 9px;
             }
 
             .joblist .active-status[active] {
@@ -127,6 +130,10 @@
                     transform: rotate(360deg);
                 }
             }
+
+            .jobname {
+                margin-left: 20px;
+            }
         </style>
         <!-- Fetch an array of users to be shown in the grid -->
         <iron-ajax auto loading="{{loading}}" url="[[jobapi]]" handle-as="json" last-response="{{jobs}}" on-error="_ajexerror" id="updateJobsList"
@@ -152,7 +159,7 @@
                     </div>
                 </template>
                 <template>
-                    <div class="cell"><span class="active-status" active$="[[item.active]]">&#9679</span> [[item.job_id]]</div>
+                    <div class="cell"><span class="active-status" active$="[[item.active]]">&#9679</span> <span class="jobname">[[item.job_id]]</span></div>
                 </template>
             </vaadin-grid-column>
             <vaadin-grid-column width="160px" flex-grow="0">
