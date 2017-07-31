@@ -7,7 +7,7 @@ var settings = {
     // Specify the existing folder where 
     outputDirectory: './release-built-installers/bigstream-console-win32-ia32',
     // The name of the Author of the app (the name of your company)
-    authors: 'Our Code World Inc.',
+    authors: 'LSR Nectec',
     // The name of the executable of your built
     exe: './bigstream-console.exe'
 };
